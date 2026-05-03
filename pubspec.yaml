@@ -1,0 +1,46 @@
+name: ivistream_dashboard_admin
+description: "IviStream Admin Dashboard"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+  intl:
+  fluentui_system_icons: any
+  retrofit: any
+  pretty_dio_logger: any
+  flutter_riverpod: any
+  shared_preferences: any
+  flutter_localizations:
+    sdk: flutter
+  auto_route: ^11.1.0
+  dio: ^5.9.2
+  web: ^1.1.1
+  dio_web_adapter: ^2.1.2
+  google_fonts: ^8.1.0
+  lucide_icons_flutter: ^3.1.13
+  fl_chart: any
+  json_annotation: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.7.1
+  auto_route_generator: ^10.2.6
+  retrofit_generator: ^10.2.1
+  json_serializable: any
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
