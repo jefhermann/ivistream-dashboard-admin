@@ -19,6 +19,7 @@ class DashboardShellScreen extends ConsumerWidget {
         UsersRoute(),
         ContentsRoute(),
         ProducersRoute(),
+        RevenuesRoute(),
         AdminTeamRoute(),
       ],
       builder: (context, child) {
@@ -102,7 +103,7 @@ class _DesktopShell extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.colorRedSecondary.withOpacity(0.1),
+                        color: AppColors.colorRedSecondary.withValues(alpha: .1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -119,8 +120,9 @@ class _DesktopShell extends ConsumerWidget {
                 _NavItem(icon: LucideIcons.users, label: 'Utilisateurs', isActive: tabsRouter.activeIndex == 1, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(1)),
                 _NavItem(icon: LucideIcons.clapperboard, label: 'Contenus', isActive: tabsRouter.activeIndex == 2, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(2)),
                 _NavItem(icon: LucideIcons.building2, label: 'Producteurs', isActive: tabsRouter.activeIndex == 3, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(3)),
+                _NavItem(icon: LucideIcons.handCoins, label: 'Revenus', isActive: tabsRouter.activeIndex == 4, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(4)),
                 if (authState.user?.role == 'super_admin')
-                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 4, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(4)),
+                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 5, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(5)),
 
                 const Spacer(),
 
@@ -241,7 +243,7 @@ class _MobileShell extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.colorRedSecondary.withOpacity(0.1),
+                            color: AppColors.colorRedSecondary.withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -258,8 +260,9 @@ class _MobileShell extends ConsumerWidget {
                 _NavItem(icon: LucideIcons.users, label: 'Utilisateurs', isActive: tabsRouter.activeIndex == 1, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(1); }),
                 _NavItem(icon: LucideIcons.clapperboard, label: 'Contenus', isActive: tabsRouter.activeIndex == 2, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(2); }),
                 _NavItem(icon: LucideIcons.building2, label: 'Producteurs', isActive: tabsRouter.activeIndex == 3, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(3); }),
+                _NavItem(icon: LucideIcons.handCoins, label: 'Revenus', isActive: tabsRouter.activeIndex == 4, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(4); }),
                 if (authState.user?.role == 'super_admin')
-                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 4, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(4); }),
+                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 5, onTap: () { Navigator.pop(context); tabsRouter.setActiveIndex(5); }),
                 const Spacer(),
                 _NavItem(icon: LucideIcons.logOut, label: 'Déconnexion', isActive: false, onTap: () => _showLogoutDialog(context, ref)),
                 const SizedBox(height: 16),

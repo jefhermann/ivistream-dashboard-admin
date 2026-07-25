@@ -15,7 +15,6 @@ dependencies:
 
   cupertino_icons: ^1.0.6
   intl:
-  fluentui_system_icons: any
   retrofit: any
   pretty_dio_logger: any
   flutter_riverpod: any
@@ -30,6 +29,12 @@ dependencies:
   lucide_icons_flutter: ^3.1.13
   fl_chart: any
   json_annotation: any
+  fluentui_system_icons: ^1.1.273
+  advanced_searchable_dropdown: ^2.1.0
+  multi_dropdown: ^3.2.1
+  wolt_modal_sheet: ^0.11.0
+  image_picker: ^1.2.3
+  gap: ^3.0.1
 
 dev_dependencies:
   flutter_test:

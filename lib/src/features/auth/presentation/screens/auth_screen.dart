@@ -14,19 +14,19 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     await ref.read(authControllerProvider.notifier).login(
-          _emailController.text.trim(),
+          _usernameController.text.trim(),
           _passwordController.text,
         );
   }
@@ -57,14 +57,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
               const SizedBox(height: 48),
               BasicInput(
-                _emailController,
+                _usernameController,
                 textInputType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.username, AutofillHints.email],
                 hintText: 'Email',
+                text: "Email",
               ),
-              const SizedBox(height: 16),
               PasswordInputForm(
                 controller: _passwordController,
                 hintText: 'Mot de passe',
+                text: 'Mot de passe',
+                autofillHints: const [AutofillHints.password],
                 onSubmitted: (_) => _login(),
               ),
               const SizedBox(height: 24),

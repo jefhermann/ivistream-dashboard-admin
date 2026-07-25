@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../common/common.dart';
 import '../../users/data/admin_user_model.dart';
 import '../data/data.dart';
@@ -7,15 +6,13 @@ import '../data/data.dart';
 // ============================================================
 // Repository
 // ============================================================
-
 final producersRepositoryProvider = Provider<ProducersRepository>((ref) {
   return ProducersRepository(ref.read(dioProvider));
 });
 
 // ============================================================
-// Filter State
+// Filter State (Immuable & Propre)
 // ============================================================
-
 class ProducersFilterState {
   final int page;
   final String? search;
@@ -30,77 +27,63 @@ class ProducersFilterState {
   }
 }
 
+// On garde le StateProvider pour stocker les inputs de recherche de l'UI
 final producersFilterProvider = StateProvider<ProducersFilterState>((ref) {
   return ProducersFilterState();
 });
 
 // ============================================================
-// Producers List
+// Producers List & Actions (Le Cerveau Réactif 👑)
 // ============================================================
-
 class ProducersListState {
   final List<AdminProducerModel> producers;
   final PaginationModel? pagination;
-  final bool isLoading;
-  final String? error;
 
-  ProducersListState({
-    this.producers = const [],
-    this.pagination,
-    this.isLoading = false,
-    this.error,
-  });
+  ProducersListState({this.producers = const [], this.pagination});
+}
 
-  ProducersListState copyWith({
-    List<AdminProducerModel>? producers,
-    PaginationModel? pagination,
-    bool? isLoading,
-    String? error,
-  }) {
+class ProducersListNotifier extends AutoDisposeAsyncNotifier<ProducersListState> {
+  @override
+  Future<ProducersListState> build() async {
+    // 👑 MAGIE RÉACTIVE : On écoute activement le filtre.
+    // Dès que producersFilterProvider change (recherche ou page),
+    // build() se relance AUTOMATIQUEMENT et met l'état global en AsyncLoading !
+    final filter = ref.watch(producersFilterProvider);
+    final repo = ref.read(producersRepositoryProvider);
+
+    final result = await repo.getProducers(page: filter.page, search: filter.search);
+
     return ProducersListState(
-      producers: producers ?? this.producers,
-      pagination: pagination ?? this.pagination,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
+      producers: result.producers,
+      pagination: result.pagination,
     );
   }
-}
 
-class ProducersListNotifier extends StateNotifier<ProducersListState> {
-  final ProducersRepository _repo;
-
-  ProducersListNotifier(this._repo) : super(ProducersListState());
-
-  Future<void> loadProducers({int page = 1, String? search}) async {
-    state = state.copyWith(isLoading: true, error: null);
-
+  // Action : Création
+  Future<bool> createProducer({required String name, String? description, String? countryCode, String? contact, String? email}) async {
     try {
-      final result = await _repo.getProducers(page: page, search: search);
-      state = state.copyWith(
-        producers: result.producers,
-        pagination: result.pagination,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString().replaceAll('Exception: ', ''),
-      );
-    }
-  }
+      final repo = ref.read(producersRepositoryProvider);
+      await repo.createProducer(name: name, description: description, countryCode: countryCode, contact: contact, email: email);
 
-  Future<bool> createProducer({required String name, String? description, String? countryCode}) async {
-    try {
-      await _repo.createProducer(name: name, description: description, countryCode: countryCode);
+      // 👑 ULTRA IMPORTANT : On invalide le filtre pour forcer la liste à se recharger
+      // et à afficher instantanément le nouveau producteur dans ton Dropdown.
+      ref.invalidate(producersFilterProvider);
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  Future<bool> updateProducer(String producerId, {String? name, String? description, bool? isVerified}) async {
+  // Action : Mise à jour
+  Future<bool> updateProducer(String producerId, {String? name, String? description, bool? isVerified, String? contact, String? email}) async {
     try {
-      await _repo.updateProducer(producerId, name: name, description: description, isVerified: isVerified);
+      final repo = ref.read(producersRepositoryProvider);
+      await repo.updateProducer(producerId, name: name, description: description, isVerified: isVerified, contact: contact, email: email);
+
+      // On rafraîchit la liste
+      ref.invalidate(producersFilterProvider);
+      // On invalide aussi le détail spécifique s'il est ouvert quelque part
+      ref.invalidate(producerDetailProvider(producerId));
       return true;
     } catch (e) {
       return false;
@@ -108,14 +91,13 @@ class ProducersListNotifier extends StateNotifier<ProducersListState> {
   }
 }
 
-final producersListProvider = StateNotifierProvider<ProducersListNotifier, ProducersListState>((ref) {
-  return ProducersListNotifier(ref.read(producersRepositoryProvider));
+final producersListProvider = AsyncNotifierProvider.autoDispose<ProducersListNotifier, ProducersListState>(() {
+  return ProducersListNotifier();
 });
 
 // ============================================================
 // Producer Detail
 // ============================================================
-
 final producerDetailProvider = FutureProvider.family.autoDispose<AdminProducerModel, String>((ref, producerId) async {
   final repo = ref.read(producersRepositoryProvider);
   return await repo.getProducerDetail(producerId);

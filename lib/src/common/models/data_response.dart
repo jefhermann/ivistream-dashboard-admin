@@ -1,11 +1,14 @@
+import '../common.dart';
+
 class DataResponse<T> {
   final T? item;
   final List<T>? items;
   final String? message;
   final int? statusCode;
   final bool? hasError;
+  final PaginationModel? pagination;
 
-  DataResponse._({this.item, this.items, this.message, this.statusCode, this.hasError});
+  DataResponse._({this.item, this.items, this.message, this.statusCode, this.hasError, this.pagination});
 
   factory DataResponse.failure(String message) {
     return DataResponse._(message: message, hasError: true, item: null, items: null);
@@ -15,6 +18,7 @@ class DataResponse<T> {
     final error = json['hasError'] as bool? ?? false;
     final statusCode = json['code'] as int? ?? 0;
     final message = error == true ? json['message'] as String? : null;
+    final pagination = json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null;
 
     T? parsedItem;
     List<T>? parsedItems;
@@ -29,7 +33,7 @@ class DataResponse<T> {
       }
     }
 
-    return DataResponse._(item: parsedItem, items: parsedItems, message: message, hasError: error, statusCode: statusCode);
+    return DataResponse._(item: parsedItem, items: parsedItems, message: message, hasError: error, statusCode: statusCode, pagination: pagination);
   }
 
   factory DataResponse.set({T? item, List<T>? items, String? message, int? statusCode, bool? error}) {

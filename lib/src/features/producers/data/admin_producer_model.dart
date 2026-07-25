@@ -7,6 +7,8 @@ class AdminProducerModel {
   final String? logoUrl;
   final bool isVerified;
   final String createdAt;
+  final String? contact;
+  final String? email;
 
   // Detail fields
   final int? contentsCount;
@@ -22,7 +24,7 @@ class AdminProducerModel {
     required this.isVerified,
     required this.createdAt,
     this.contentsCount,
-    this.members,
+    this.members, this.contact, this.email,
   });
 
   factory AdminProducerModel.fromJson(Map<String, dynamic> json) {
@@ -36,10 +38,29 @@ class AdminProducerModel {
       isVerified: json['is_verified'] ?? false,
       createdAt: json['created_at'] ?? '',
       contentsCount: json['contents_count'],
+      contact: json['contact'],
+      email: json['email'],
       members: json['members'] != null
           ? (json['members'] as List).map((m) => ProducerMemberModel.fromJson(m)).toList()
           : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+      'description': description,
+      'country_code': countryCode,
+      'logo_url': logoUrl,
+      'is_verified': isVerified,
+      'created_at': createdAt,
+      'contact': contact,
+      'email': email,
+      'contents_count': contentsCount,
+      'members': members?.map((e) => e.toJson()).toList(),
+    };
   }
 }
 
@@ -63,6 +84,15 @@ class ProducerMemberModel {
       isActive: json['is_active'] ?? true,
       user: json['users'] is Map<String, dynamic> ? json['users'] : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'role': role,
+      'is_active': isActive,
+      'users': user,
+    };
   }
 
   String get userName => user?['full_name'] ?? 'Inconnu';

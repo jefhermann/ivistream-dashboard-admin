@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/auth/auth.dart';
+import '../features/content_gender/content_gender.dart';
+import '../features/country/country.dart';
 import '../features/dashboard/dashboard.dart';
+import '../features/person/person.dart';
 import '../features/users/users.dart';
 import '../features/producers/producers.dart';
+import '../features/contents/contents.dart';
+import '../features/revenues/revenues.dart';
+import '../features/team/team.dart';
 
 part 'app_router.gr.dart';
 
@@ -19,7 +25,7 @@ class AuthGuard extends AutoRouteGuard {
   AuthGuard(this._ref);
 
   @override
-  void onNavigation(NavigationResolver resolver, StackRouter router) {
+  void onNavigation(NavigationResolver resolver, StackRouter router) async {
     final authState = _ref.read(authControllerProvider);
 
     if (authState.isAuthenticated) {
@@ -53,11 +59,23 @@ class AppRouter extends RootStackRouter {
           children: [
             AutoRoute(path: 'dashboard', page: DashboardRoute.page, initial: true),
             AutoRoute(path: 'users', page: UsersRoute.page),
-            AutoRoute(path: 'contents', page: ContentsRoute.page),
+            // AutoRoute(path: 'contents', page: ContentsRoute.page),
+            AutoRoute(
+              path: 'contents',
+              page: ContentsWrapperRoute.page, // Le wrapper que tu viens de créer
+              children: [
+                AutoRoute(path: '', page: ContentsRoute.page), // Liste par défaut[cite: 24]
+                AutoRoute(path: ':contentId', page: ContentDetailRoute.page),
+                AutoRoute(path: 'add', page: AddContentRoute.page),
+                AutoRoute(path: 'edit', page: EditContentRoute.page),
+              ],
+            ),
             AutoRoute(path: 'producers', page: ProducersRoute.page),
+            AutoRoute(path: 'revenues', page: RevenuesRoute.page),
             AutoRoute(path: 'team', page: AdminTeamRoute.page),
           ],
         ),
+
       ];
 
   @override

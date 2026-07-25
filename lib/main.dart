@@ -38,6 +38,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.backgroundBodyLightColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.colorBluePrimary),
       ),
       routerConfig: appRouter.config(
         reevaluateListenable: authNotifier,

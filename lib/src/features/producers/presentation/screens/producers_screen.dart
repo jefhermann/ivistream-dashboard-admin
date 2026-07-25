@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:multi_dropdown/multi_dropdown.dart';
 
 import '../../../../common/common.dart';
-import '../../../users/data/admin_user_model.dart';
+import '../../../country/application/application.dart';
 import '../../producers.dart';
 
 @RoutePage()
@@ -23,44 +24,30 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
   Timer? _debounce;
 
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => _loadProducers());
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
-  void _loadProducers() {
-    final filters = ref.read(producersFilterProvider);
-    ref.read(producersListProvider.notifier).loadProducers(
-          page: filters.page,
-          search: filters.search,
-        );
-  }
-
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      ref.read(producersFilterProvider.notifier).state =
-          ref.read(producersFilterProvider).copyWith(search: value.isEmpty ? null : value, page: 1, clearSearch: value.isEmpty);
-      _loadProducers();
+      ref.read(producersFilterProvider.notifier).update((state) => state.copyWith(
+            search: value.isEmpty ? null : value,
+            page: 1,
+            clearSearch: value.isEmpty,
+          ));
     });
   }
 
   void _goToPage(int page) {
-    ref.read(producersFilterProvider.notifier).state =
-        ref.read(producersFilterProvider).copyWith(page: page);
-    _loadProducers();
+    ref.read(producersFilterProvider.notifier).update((state) => state.copyWith(page: page));
   }
 
   @override
   Widget build(BuildContext context) {
-    final producersState = ref.watch(producersListProvider);
+    final AsyncValue<ProducersListState> producersAsync = ref.watch(producersListProvider);
     final filters = ref.watch(producersFilterProvider);
     final isMobile = ResponsiveLayout.isMobile(context);
 
@@ -69,7 +56,6 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Expanded(
@@ -79,9 +65,10 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
                     Text('Producteurs', style: boldTextStyle(fontSize: isMobile ? 22 : 28)),
                     const SizedBox(height: 4),
                     Text(
-                      producersState.pagination != null
-                          ? '${producersState.pagination!.total} producteurs au total'
-                          : 'Chargement...',
+                      producersAsync.maybeWhen(
+                        data: (state) => state.pagination != null ? '${state.pagination!.total} producteurs au total' : '0 producteur',
+                        orElse: () => 'Chargement...',
+                      ),
                       style: basicTextStyle(color: AppColors.colorGrayDark),
                     ),
                   ],
@@ -100,8 +87,6 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
             ],
           ),
           const SizedBox(height: 20),
-
-          // Search
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -136,8 +121,7 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
                   TextButton.icon(
                     onPressed: () {
                       _searchController.clear();
-                      ref.read(producersFilterProvider.notifier).state = ProducersFilterState();
-                      _loadProducers();
+                      ref.invalidate(producersFilterProvider); // Reset complet
                     },
                     icon: const Icon(LucideIcons.x, size: 16),
                     label: Text('Effacer', style: basicTextStyle(fontSize: 13, color: AppColors.colorRedSecondary)),
@@ -147,71 +131,73 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          producersAsync.when(
+            loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
+            error: (error, _) => Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: AppColors.colorRedSecondary.withValues(alpha: .1), borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(error.toString(), style: basicTextStyle(color: AppColors.colorRedSecondary, fontSize: 13))),
+                  TextButton(
+                    onPressed: () => ref.invalidate(producersFilterProvider), // Force le re-trigger
+                    child: Text('Réessayer', style: mediumTextStyle(fontSize: 13, color: AppColors.colorBluePrimary)),
+                  ),
+                ],
+              ),
+            ),
+            data: (state) {
+              if (state.producers.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(40),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(LucideIcons.building2, size: 40, color: AppColors.colorGrayDark),
+                        const SizedBox(height: 12),
+                        Text('Aucun producteur trouvé', style: mediumTextStyle(color: AppColors.colorGrayDark)),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
-          // List
-          _buildProducersList(producersState, isMobile),
+              return Column(
+                children: [
+                  if (isMobile)
+                    Column(children: state.producers.map((p) => _ProducerCard(producer: p, onTap: () => _showDetailDialog(p))).toList())
+                  else
+                    _ProducersTable(producers: state.producers, onTap: _showDetailDialog, onEdit: _showEditDialog, onToggleVerify: _toggleVerify),
 
-          // Pagination
-          if (producersState.pagination != null && producersState.pagination!.totalPages > 1) ...[
-            const SizedBox(height: 16),
-            _buildPagination(producersState.pagination!, filters.page),
-          ],
+                  // Pagination imbriquée dans la présence de données valides
+                  if (state.pagination != null && state.pagination!.totalPages > 1) ...[
+                    const SizedBox(height: 16),
+                    _buildPagination(state.pagination!, filters.page),
+                  ],
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
-  }
-
-  Widget _buildProducersList(ProducersListState state, bool isMobile) {
-    if (state.isLoading) {
-      return const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()));
-    }
-
-    if (state.error != null) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: AppColors.colorRedSecondary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-        child: Row(
-          children: [
-            Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 20),
-            const SizedBox(width: 8),
-            Expanded(child: Text(state.error!, style: basicTextStyle(color: AppColors.colorRedSecondary, fontSize: 13))),
-            TextButton(onPressed: _loadProducers, child: Text('Réessayer', style: mediumTextStyle(fontSize: 13, color: AppColors.colorBluePrimary))),
-          ],
-        ),
-      );
-    }
-
-    if (state.producers.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(40),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(LucideIcons.building2, size: 40, color: AppColors.colorGrayDark),
-              const SizedBox(height: 12),
-              Text('Aucun producteur trouvé', style: mediumTextStyle(color: AppColors.colorGrayDark)),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (isMobile) {
-      return Column(children: state.producers.map((p) => _ProducerCard(producer: p, onTap: () => _showDetailDialog(p))).toList());
-    }
-
-    return _ProducersTable(producers: state.producers, onTap: _showDetailDialog, onEdit: _showEditDialog, onToggleVerify: _toggleVerify);
   }
 
   void _showCreateDialog() {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final countryCtrl = TextEditingController();
+    final contactCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    String? country;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const TitleText('Nouveau producteur', fontSize: 18),
         content: SizedBox(
@@ -221,9 +207,21 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
             children: [
               _DialogTextField(controller: nameCtrl, label: 'Nom *'),
               const SizedBox(height: 12),
-              _DialogTextField(controller: descCtrl, label: 'Description', maxLines: 3),
+              CustomSearchDropdownInput(
+                label: 'Pays d\'origine',
+                singleSelect: true,
+                onSelectionChange: (List<String> selectedIds) {
+                  setState(() => country = selectedIds.first);
+                },
+                onSearch: (String query) async {
+                  final country = await ref.read(countryRepositoryProvider).getCountries(query);
+                  return country.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
+                },
+              ),
               const SizedBox(height: 12),
-              _DialogTextField(controller: countryCtrl, label: 'Code pays (ex: CI, FR)'),
+              _DialogTextField(controller: contactCtrl, label: 'Contact'),
+              const SizedBox(height: 12),
+              _DialogTextField(controller: emailCtrl, label: 'Email'),
             ],
           ),
         ),
@@ -234,17 +232,20 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
             onPressed: () async {
               if (nameCtrl.text.trim().isEmpty) return;
               Navigator.pop(ctx);
+
+              // 👑 APPEL DU NOTIFIER MODERNE : La mise à jour de la liste est automatique suite au ref.invalidate interne
               final ok = await ref.read(producersListProvider.notifier).createProducer(
                     name: nameCtrl.text.trim(),
                     description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
-                    countryCode: countryCtrl.text.trim().isEmpty ? null : countryCtrl.text.trim().toUpperCase(),
+                    countryCode: country,
+                    contact: contactCtrl.text.trim().isEmpty ? null : contactCtrl.text.trim(),
+                    email: emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
                   );
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: MediumText(ok ? 'Producteur créé' : 'Erreur création', color: Colors.white),
                   backgroundColor: ok ? Colors.green : Colors.red,
                 ));
-                if (ok) _loadProducers();
               }
             },
             child: const MediumText('Créer', fontSize: 14, color: Colors.white),
@@ -256,7 +257,8 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
 
   void _showEditDialog(AdminProducerModel producer) {
     final nameCtrl = TextEditingController(text: producer.name);
-    final descCtrl = TextEditingController(text: producer.description ?? '');
+    final emailCtrl = TextEditingController(text: producer.email);
+    final contactCtrl = TextEditingController(text: producer.contact);
 
     showDialog(
       context: context,
@@ -270,7 +272,9 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
             children: [
               _DialogTextField(controller: nameCtrl, label: 'Nom'),
               const SizedBox(height: 12),
-              _DialogTextField(controller: descCtrl, label: 'Description', maxLines: 3),
+              _DialogTextField(controller: contactCtrl, label: 'Contact'),
+              const SizedBox(height: 12),
+              _DialogTextField(controller: emailCtrl, label: 'Email'),
             ],
           ),
         ),
@@ -283,14 +287,14 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
               final ok = await ref.read(producersListProvider.notifier).updateProducer(
                     producer.id,
                     name: nameCtrl.text.trim(),
-                    description: descCtrl.text.trim(),
+                    contact: contactCtrl.text.trim(),
+                    email: emailCtrl.text.trim(),
                   );
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: MediumText(ok ? 'Producteur modifié' : 'Erreur', color: Colors.white),
                   backgroundColor: ok ? Colors.green : Colors.red,
                 ));
-                if (ok) _loadProducers();
               }
             },
             child: const MediumText('Enregistrer', fontSize: 14, color: Colors.white),
@@ -307,7 +311,6 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
         content: MediumText(ok ? (producer.isVerified ? 'Vérification retirée' : 'Producteur vérifié') : 'Erreur', color: Colors.white),
         backgroundColor: ok ? Colors.green : Colors.red,
       ));
-      if (ok) _loadProducers();
     }
   }
 
@@ -316,7 +319,7 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
       context: context,
       builder: (ctx) => _ProducerDetailDialog(
         producerId: producer.id,
-        onMemberRemoved: () => _loadProducers(),
+        onMemberRemoved: () => ref.invalidate(producersFilterProvider),
       ),
     );
   }
@@ -387,7 +390,7 @@ class _ProducersTable extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withOpacity(0.1),
+                                color: const Color(0xFF10B981).withValues(alpha: .1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: producer.logoUrl != null
@@ -414,13 +417,13 @@ class _ProducersTable extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: producer.isVerified ? const Color(0xFF10B981).withOpacity(0.1) : Colors.grey.shade100,
+                            color: producer.isVerified ? const Color(0xFF10B981).withValues(alpha: .1) : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (producer.isVerified) Icon(LucideIcons.badgeCheck, size: 14, color: const Color(0xFF10B981)),
+                              if (producer.isVerified) const Icon(LucideIcons.badgeCheck, size: 14, color: Color(0xFF10B981)),
                               if (producer.isVerified) const SizedBox(width: 4),
                               Text(
                                 producer.isVerified ? 'Vérifié' : 'Non vérifié',
@@ -443,7 +446,7 @@ class _ProducersTable extends StatelessWidget {
                           children: [
                             Tooltip(
                               message: 'Modifier',
-                              child: IconButton(onPressed: () => onEdit(producer), icon: Icon(LucideIcons.pencil, size: 18, color: AppColors.colorBluePrimary)),
+                              child: IconButton(onPressed: () => onEdit(producer), icon: const Icon(LucideIcons.pencil, size: 18, color: AppColors.colorBluePrimary)),
                             ),
                             Tooltip(
                               message: producer.isVerified ? 'Retirer vérification' : 'Vérifier',
@@ -494,7 +497,7 @@ class _ProducerCard extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: .1), borderRadius: BorderRadius.circular(10)),
                 child: Center(child: Text(producer.name[0].toUpperCase(), style: boldTextStyle(color: const Color(0xFF10B981), fontSize: 18))),
               ),
               const SizedBox(width: 12),
@@ -508,7 +511,7 @@ class _ProducerCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (producer.isVerified) Icon(LucideIcons.badgeCheck, size: 20, color: const Color(0xFF10B981)),
+              if (producer.isVerified) const Icon(LucideIcons.badgeCheck, size: 20, color: Color(0xFF10B981)),
               const SizedBox(width: 4),
               const Icon(LucideIcons.chevronRight, size: 18, color: AppColors.colorGrayDark),
             ],
@@ -543,7 +546,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
           error: (e, _) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 40),
+              const Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 40),
               const SizedBox(height: 12),
               Text('Erreur: $e', style: basicTextStyle(color: AppColors.colorRedSecondary)),
               const SizedBox(height: 16),
@@ -561,7 +564,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
                     Container(
                       width: 50,
                       height: 50,
-                      decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: .1), borderRadius: BorderRadius.circular(12)),
                       child: Center(child: Text(producer.name[0].toUpperCase(), style: boldTextStyle(color: const Color(0xFF10B981), fontSize: 22))),
                     ),
                     const SizedBox(width: 16),
@@ -575,11 +578,11 @@ class _ProducerDetailDialog extends ConsumerWidget {
                               if (producer.isVerified)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                  decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: .1), borderRadius: BorderRadius.circular(8)),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(LucideIcons.badgeCheck, size: 14, color: const Color(0xFF10B981)),
+                                      const Icon(LucideIcons.badgeCheck, size: 14, color: Color(0xFF10B981)),
                                       const SizedBox(width: 4),
                                       Text('Vérifié', style: mediumTextStyle(fontSize: 11, color: const Color(0xFF10B981))),
                                     ],
@@ -605,6 +608,8 @@ class _ProducerDetailDialog extends ConsumerWidget {
                 _InfoRow('ID', producer.id),
                 _InfoRow('Slug', producer.slug),
                 _InfoRow('Pays', producer.countryCode ?? 'N/A'),
+                _InfoRow('Contact', producer.contact ?? 'N/A'),
+                _InfoRow('Email', producer.email ?? 'N/A'),
                 _InfoRow('Contenus', '${producer.contentsCount ?? 0}'),
 
                 // Members
@@ -640,7 +645,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
                           children: [
                             CircleAvatar(
                               radius: 18,
-                              backgroundColor: AppColors.colorBluePrimary.withOpacity(0.1),
+                              backgroundColor: AppColors.colorBluePrimary.withValues(alpha: .1),
                               child: Text(member.userName[0].toUpperCase(), style: boldTextStyle(color: AppColors.colorBluePrimary, fontSize: 13)),
                             ),
                             const SizedBox(width: 12),
@@ -655,7 +660,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(color: AppColors.colorBluePrimary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: AppColors.colorBluePrimary.withValues(alpha: .1), borderRadius: BorderRadius.circular(6)),
                               child: Text(member.roleLabel, style: mediumTextStyle(fontSize: 11, color: AppColors.colorBluePrimary)),
                             ),
                             const SizedBox(width: 8),
@@ -684,7 +689,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
                                   } catch (_) {}
                                 }
                               },
-                              icon: Icon(LucideIcons.userMinus, size: 16, color: AppColors.colorRedSecondary),
+                              icon: const Icon(LucideIcons.userMinus, size: 16, color: AppColors.colorRedSecondary),
                             ),
                           ],
                         ),
@@ -721,7 +726,7 @@ class _ProducerDetailDialog extends ConsumerWidget {
                 _DialogTextField(controller: userIdCtrl, label: 'ID utilisateur'),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: InputDecoration(
                     labelText: 'Rôle',
                     labelStyle: basicTextStyle(fontSize: 14, color: AppColors.colorGrayDark),
@@ -812,7 +817,14 @@ class _DialogTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: basicTextStyle(fontSize: 14, color: AppColors.colorGrayDark),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade100),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
       ),
     );
   }

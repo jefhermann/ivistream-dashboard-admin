@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../common/common.dart';
 import '../../users/data/admin_user_model.dart';
 import 'admin_producer_model.dart';
 
@@ -41,12 +42,16 @@ class ProducersRepository {
     String? description,
     String? countryCode,
     String? logoUrl,
+    String? contact,
+    String? email,
   }) async {
     final response = await _dio.post('/admin/producers', data: {
       'name': name,
       if (description != null) 'description': description,
       if (countryCode != null) 'countryCode': countryCode,
       if (logoUrl != null) 'logoUrl': logoUrl,
+      if (contact != null) 'contact': contact,
+      if (email != null) 'email': email,
     });
     return AdminProducerModel.fromJson(response.data['item']);
   }
@@ -57,6 +62,8 @@ class ProducersRepository {
     String? countryCode,
     String? logoUrl,
     bool? isVerified,
+    String? contact,
+    String? email,
   }) async {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
@@ -64,6 +71,8 @@ class ProducersRepository {
     if (countryCode != null) body['countryCode'] = countryCode;
     if (logoUrl != null) body['logoUrl'] = logoUrl;
     if (isVerified != null) body['isVerified'] = isVerified;
+    if (contact != null) body['contact'] = contact;
+    if (email != null) body['email'] = email;
 
     final response = await _dio.put('/admin/producers/$producerId', data: body);
     return AdminProducerModel.fromJson(response.data['item']);

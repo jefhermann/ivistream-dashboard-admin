@@ -12,6 +12,8 @@ class PasswordInputForm extends StatefulWidget {
   final String hintText;
   final FocusNode? focusNode;
   final Function(String)? onSubmitted;
+  final List<String>? autofillHints;
+  final String? text;
 
   const PasswordInputForm(
       {super.key,
@@ -22,7 +24,8 @@ class PasswordInputForm extends StatefulWidget {
       this.textInputType = TextInputType.text,
       required this.hintText,
       this.textInputAction,
-      this.onSubmitted});
+      this.onSubmitted,
+      this.autofillHints, this.text});
 
   @override
   State<PasswordInputForm> createState() => _PasswordInputFormState();
@@ -34,21 +37,21 @@ class _PasswordInputFormState extends State<PasswordInputForm> {
 
   @override
   Widget build(BuildContext context) {
-    return InputForm(
-      child: Row(
-        children: [
-          Expanded(
-              child: BasicTextFormField(widget.controller,
-                  hintText: widget.hintText,
-                  readOnly: widget.readOnly,
-                  nextInputForm: widget.nextInputForm,
-                  textInputType: TextInputType.text,
-                  obscureText: _obscurePassword,
-                  focusNode: widget.focusNode,
-                  onSubmitted: widget.onSubmitted,
-                  textInputAction: widget.textInputAction)),
-          const SizedBox(width: 10),
-          InkWell(
+    return Column(
+      children: [
+        BasicInput(
+          widget.controller,
+          hintText: widget.hintText,
+          readOnly: widget.readOnly,
+          nextInputForm: widget.nextInputForm,
+          textInputType: TextInputType.text,
+          obscureText: _obscurePassword,
+          focusNode: widget.focusNode,
+          onFieldSubmitted: widget.onSubmitted,
+          textInputAction: widget.textInputAction,
+          autofillHints: widget.autofillHints,
+          text: widget.text,
+          suffix: InkWell(
               onTap: () {
                 _obscurePassword = !_obscurePassword;
                 if (_obscurePassword) {
@@ -59,9 +62,37 @@ class _PasswordInputFormState extends State<PasswordInputForm> {
                 setState(() {});
               },
               child: Icon(_iconPassword, color: Colors.black)),
-          const SizedBox(width: 10),
-        ],
-      ),
+        ),
+        // InputForm(
+        //   child: Row(
+        //     children: [
+        //       Expanded(
+        //           child: BasicTextFormField(widget.controller,
+        //               hintText: widget.hintText,
+        //               readOnly: widget.readOnly,
+        //               nextInputForm: widget.nextInputForm,
+        //               textInputType: TextInputType.text,
+        //               obscureText: _obscurePassword,
+        //               focusNode: widget.focusNode,
+        //               onSubmitted: widget.onSubmitted,
+        //               textInputAction: widget.textInputAction)),
+        //       const SizedBox(width: 10),
+        //       InkWell(
+        //           onTap: () {
+        //             _obscurePassword = !_obscurePassword;
+        //             if (_obscurePassword) {
+        //               _iconPassword = FluentIcons.eye_off_16_regular;
+        //             } else {
+        //               _iconPassword = FluentIcons.eye_16_regular;
+        //             }
+        //             setState(() {});
+        //           },
+        //           child: Icon(_iconPassword, color: Colors.black)),
+        //       const SizedBox(width: 10),
+        //     ],
+        //   ),
+        // ),
+      ],
     );
   }
 }

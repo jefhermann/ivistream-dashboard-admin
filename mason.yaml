@@ -1,0 +1,6 @@
+bricks:
+  feature:
+    git:
+      url: git@github.com:Everest-Develop-Center/bricks-mobile.git
+      path: bricks/feature
+      ref: main
