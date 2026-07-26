@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../common/common.dart';
-import '../../users/data/admin_user_model.dart';
 import 'revenue_models.dart';
 
 class RevenuesRepository {

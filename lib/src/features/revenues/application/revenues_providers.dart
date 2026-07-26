@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../common/common.dart';
-import '../../users/data/admin_user_model.dart';
 import '../data/data.dart';
 
 final revenuesRepositoryProvider = Provider<RevenuesRepository>((ref) {

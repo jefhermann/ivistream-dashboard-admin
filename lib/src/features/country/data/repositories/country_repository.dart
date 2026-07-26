@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../common/common.dart';
 import '../../country.dart';
 
 class CountryRepository {
@@ -8,16 +9,15 @@ class CountryRepository {
 
   CountryRepository(this._api);
 
-  Future<List<CountryModel>> getCountries(String? search) async {
+  Future<DataResponse<CountryModel>> getCountries({String? query, int? page}) async {
     try {
-      final response = await _api.getCountries(search);
+      final response = await _api.getCountries(query, page, 10);
 
       if (response.hasError == true) {
         throw Exception(response.message);
       }
 
-      return response.items ?? [];
-
+      return response;
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -36,7 +36,26 @@ class CountryRepository {
       }
 
       return response.item;
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final message = e.response!.data['message'];
+        throw Exception(message ?? "Une erreur inconnue est survenue");
+      }
+      throw Exception("Problème de connexion internet");
+    }
+  }
 
+  Future<bool> updateCountry(String id, CountryModel body) async {
+    try {
+      final response = await _api.updateCountry(body, id);
+
+      bool value = !response.hasError!;
+
+      if (response.hasError == true) {
+        throw Exception(response.message);
+      }
+
+      return value;
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -112,7 +110,7 @@ class _AddContentScreenState extends ConsumerState<AddContentScreen> {
                                   },
                                   onSearch: (query) async {
                                     final persons = await ref.read(personRepositoryProvider).getPersons(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -126,7 +124,7 @@ class _AddContentScreenState extends ConsumerState<AddContentScreen> {
                                   },
                                   onSearch: (query) async {
                                     final persons = await ref.read(personRepositoryProvider).getPersons(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -228,7 +226,7 @@ class _AddContentScreenState extends ConsumerState<AddContentScreen> {
                                   },
                                   onSearch: (query) async {
                                     final persons = await ref.read(contentGenderRepositoryProvider).getGenres(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -289,8 +287,8 @@ class _AddContentScreenState extends ConsumerState<AddContentScreen> {
                                         setState(() => country = selectedIds.first);
                                       },
                                       onSearch: (String query) async {
-                                        final country = await ref.read(countryRepositoryProvider).getCountries(query);
-                                        return country.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
+                                        final country = await ref.read(countryRepositoryProvider).getCountries(query: query);
+                                        return country.items!.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
                                       },
                                     ),
                                     Spacers.min,

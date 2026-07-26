@@ -21,3 +21,6 @@ final countryControllerProvider = StateNotifierProvider<CountryController, Async
   return CountryController(repo);
 });
 
+final countryListProvider = AsyncNotifierProvider<CountryListNotifier, CountryListState>(() {
+  return CountryListNotifier();
+});

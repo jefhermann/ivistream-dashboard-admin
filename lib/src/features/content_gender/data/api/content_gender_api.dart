@@ -12,8 +12,11 @@ abstract class ContentGenderApi {
   factory ContentGenderApi(Dio dio, {String baseUrl}) = _ContentGenderApi;
 
   @GET('/admin/genres')
-  Future<DataResponse<GenreModel>> getGenres(@Query('q') String? query);
+  Future<DataResponse<GenreModel>> getGenres(@Query('q') String? query, @Query('page') int? page, @Query('limit') int? limit);
 
   @POST('/admin/genres')
   Future<DataResponse<GenreModel>> addGenres(@Body() GenreModel? body);
+
+  @PUT('/admin/genres/{id}')
+  Future<DataResponse<GenreModel>> updateGenre(@Body() GenreModel? body, @Path('id') String id);
 }

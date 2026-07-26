@@ -18,7 +18,10 @@ class DashboardShellScreen extends ConsumerWidget {
         DashboardRoute(),
         UsersRoute(),
         ContentsRoute(),
+        ContentGenderRoute(),
         ProducersRoute(),
+        PersonRoute(),
+        CountryRoute(),
         RevenuesRoute(),
         AdminTeamRoute(),
       ],
@@ -119,10 +122,13 @@ class _DesktopShell extends ConsumerWidget {
                 _NavItem(icon: LucideIcons.layoutDashboard, label: 'Dashboard', isActive: tabsRouter.activeIndex == 0, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(0)),
                 _NavItem(icon: LucideIcons.users, label: 'Utilisateurs', isActive: tabsRouter.activeIndex == 1, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(1)),
                 _NavItem(icon: LucideIcons.clapperboard, label: 'Contenus', isActive: tabsRouter.activeIndex == 2, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(2)),
-                _NavItem(icon: LucideIcons.building2, label: 'Producteurs', isActive: tabsRouter.activeIndex == 3, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(3)),
-                _NavItem(icon: LucideIcons.handCoins, label: 'Revenus', isActive: tabsRouter.activeIndex == 4, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(4)),
+                _NavItem(icon: LucideIcons.puzzle, label: 'Genres', isActive: tabsRouter.activeIndex == 3, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(3)),
+                _NavItem(icon: LucideIcons.building2, label: 'Producteurs', isActive: tabsRouter.activeIndex == 4, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(4)),
+                _NavItem(icon: LucideIcons.user, label: 'Personnes', isActive: tabsRouter.activeIndex == 5, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(5)),
+                _NavItem(icon: LucideIcons.mapPinHouse, label: 'Pays', isActive: tabsRouter.activeIndex == 6, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(6)),
+                _NavItem(icon: LucideIcons.handCoins, label: 'Revenus', isActive: tabsRouter.activeIndex == 7, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(7)),
                 if (authState.user?.role == 'super_admin')
-                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 5, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(5)),
+                  _NavItem(icon: LucideIcons.shield, label: 'Équipe Admin', isActive: tabsRouter.activeIndex == 8, compact: isTablet, onTap: () => tabsRouter.setActiveIndex(8)),
 
                 const Spacer(),
 

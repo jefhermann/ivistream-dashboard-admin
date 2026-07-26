@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ivistream_dashboard_admin/src/config/app_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import '../../../../common/common.dart';
 import '../../contents.dart';
@@ -451,24 +450,6 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 120, child: Text(label, style: basicTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-        Expanded(child: Text(value, style: mediumTextStyle(fontSize: 13))),
-      ]),
-    );
-  }
-}
-
 class _FilterChip extends StatelessWidget {
   final String label;
   final String? value;
@@ -507,25 +488,6 @@ class _FilterChip extends StatelessWidget {
           Icon(LucideIcons.chevronDown, size: 16, color: value != null ? AppColors.colorBluePrimary : AppColors.colorGrayDark),
         ]),
       ),
-    );
-  }
-}
-
-class _DialogTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final int maxLines;
-
-  const _DialogTextField({required this.controller, required this.label, this.maxLines = 1});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      style: basicTextStyle(fontSize: 14),
-      decoration: InputDecoration(
-          labelText: label, labelStyle: basicTextStyle(fontSize: 14, color: AppColors.colorGrayDark), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
     );
   }
 }

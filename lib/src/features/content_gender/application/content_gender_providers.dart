@@ -20,3 +20,7 @@ final contentGenderControllerProvider = StateNotifierProvider<ContentGenderContr
   final repo = ref.watch(contentGenderRepositoryProvider);
   return ContentGenderController(repo);
 });
+
+final contentGenderListProvider = AsyncNotifierProvider<ContentGenderListNotifier, ContentGenderListState>(() {
+  return ContentGenderListNotifier();
+});

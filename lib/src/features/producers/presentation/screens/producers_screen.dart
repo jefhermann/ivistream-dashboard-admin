@@ -189,7 +189,6 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
   void _showCreateDialog() {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final countryCtrl = TextEditingController();
     final contactCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
     String? country;
@@ -214,8 +213,8 @@ class _ProducersScreenState extends ConsumerState<ProducersScreen> {
                   setState(() => country = selectedIds.first);
                 },
                 onSearch: (String query) async {
-                  final country = await ref.read(countryRepositoryProvider).getCountries(query);
-                  return country.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
+                  final country = await ref.read(countryRepositoryProvider).getCountries(query: query);
+                  return country.items!.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
                 },
               ),
               const SizedBox(height: 12),
@@ -417,7 +416,7 @@ class _ProducersTable extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: producer.isVerified ? const Color(0xFF10B981).withValues(alpha: .1) : Colors.grey.shade100,
+                            // color: producer.isVerified ? const Color(0xFF10B981).withValues(alpha: .1) : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(

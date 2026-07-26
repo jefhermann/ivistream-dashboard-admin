@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../common/common.dart';
-import '../../users/data/admin_user_model.dart';
 import 'admin_producer_model.dart';
 
 class ProducersRepository {

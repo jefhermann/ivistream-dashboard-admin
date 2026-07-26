@@ -334,7 +334,7 @@ class _CastSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((content.actors != null && content.actors!.isEmpty) && (content.directors != null && content.directors!.isEmpty)) return const SizedBox.shrink();
+    if ((content.actors.isEmpty) && (content.directors.isEmpty)) return const SizedBox.shrink();
 
     return Card(
       child: Padding(
@@ -344,13 +344,13 @@ class _CastSection extends StatelessWidget {
           children: [
             const Text('Équipe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 16),
-            if (content.directors != null && content.directors!.isNotEmpty) ...[
+            if (content.directors.isNotEmpty) ...[
               const Text('Réalisation', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: content.directors!
+                children: content.directors
                     .map<Widget>((d) => Chip(
                           avatar: const Icon(Icons.movie_creation, size: 16),
                           label: Text(d.name ?? "N/A", style: const TextStyle(fontSize: 12)),
@@ -360,13 +360,13 @@ class _CastSection extends StatelessWidget {
               ),
               const SizedBox(height: 16),
             ],
-            if (content.actors != null && content.actors!.isNotEmpty) ...[
+            if (content.actors.isNotEmpty) ...[
               const Text('Acteurs', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: content.actors!
+                children: content.actors
                     .map<Widget>((a) => Chip(
                           avatar: const Icon(Icons.person, size: 16),
                           label: Text(a.name ?? "N/A", style: const TextStyle(fontSize: 12)),

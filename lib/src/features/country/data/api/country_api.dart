@@ -12,8 +12,11 @@ abstract class CountryApi {
   factory CountryApi(Dio dio, {String baseUrl}) = _CountryApi;
 
   @GET("/admin/countries")
-  Future<DataResponse<CountryModel>> getCountries(@Query('search') String? search);
+  Future<DataResponse<CountryModel>> getCountries(@Query('q') String? query, @Query('page') int? page, @Query('limit') int? limit);
 
   @POST("/admin/countries")
   Future<DataResponse<CountryModel>> createCountry(@Body() CountryModel country);
+
+  @PUT('/admin/countries/{code}')
+  Future<DataResponse<CountryModel>> updateCountry(@Body() CountryModel? body, @Path('code') String code);
 }

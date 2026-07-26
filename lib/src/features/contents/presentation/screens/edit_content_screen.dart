@@ -127,7 +127,7 @@ class _AddContentScreenState extends ConsumerState<EditContentScreen> {
                                   }).toList(),
                                   onSearch: (query) async {
                                     final persons = await ref.read(personRepositoryProvider).getPersons(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -144,7 +144,7 @@ class _AddContentScreenState extends ConsumerState<EditContentScreen> {
                                   }).toList(),
                                   onSearch: (query) async {
                                     final persons = await ref.read(personRepositoryProvider).getPersons(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -247,7 +247,7 @@ class _AddContentScreenState extends ConsumerState<EditContentScreen> {
                                   preSelectedItems: content.genres?.map((g) => DropdownItem(label: g.name ?? 'Inconnu', value: g.id ?? '')).toList(),
                                   onSearch: (query) async {
                                     final persons = await ref.read(contentGenderRepositoryProvider).getGenres(query: query);
-                                    return persons.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
+                                    return persons.items!.map((p) => DropdownItem(label: p.name ?? 'Inconnu', value: p.id ?? '')).toList();
                                   },
                                 ),
                               ),
@@ -309,8 +309,8 @@ class _AddContentScreenState extends ConsumerState<EditContentScreen> {
                                       },
                                       preSelectedItems: content.country != null ? [DropdownItem(label: content.country?.name ?? "", value: content.country?.code ?? "")] : [],
                                       onSearch: (String query) async {
-                                        final country = await ref.read(countryRepositoryProvider).getCountries(query);
-                                        return country.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
+                                        final country = await ref.read(countryRepositoryProvider).getCountries(query: query);
+                                        return country.items!.map((p) => DropdownItem(label: p.name ?? "", value: p.code ?? "")).toList();
                                       },
                                     ),
                                     Spacers.min,

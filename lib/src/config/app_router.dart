@@ -73,6 +73,9 @@ class AppRouter extends RootStackRouter {
             AutoRoute(path: 'producers', page: ProducersRoute.page),
             AutoRoute(path: 'revenues', page: RevenuesRoute.page),
             AutoRoute(path: 'team', page: AdminTeamRoute.page),
+            AutoRoute(path: 'genres', page: ContentGenderRoute.page),
+            AutoRoute(path: 'persons', page: PersonRoute.page),
+            AutoRoute(path: 'countries', page: CountryRoute.page),
           ],
         ),
 

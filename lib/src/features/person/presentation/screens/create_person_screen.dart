@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../common/common.dart';
-import '../../../contents/contents.dart';
 import '../../person.dart';
 
 // 1. Isolation dans un widget dédié pour gérer le cycle de vie (Clean Code)
@@ -36,29 +35,29 @@ class _CreatePersonDialogState extends ConsumerState<CreatePersonDialog> {
       return;
     }
 
-    final success = await ref.read(addPersonControllerProvider.notifier).execute(
-      PersonModel(
-        name: name,
-        bio: bio.isEmpty ? null : bio,
-      ),
+    final success = ref.read(personListProvider.notifier).createPerson(
+      person: PersonModel(name: name, bio: bio),
     );
 
     // 5. Vérification vitale du contexte après le gap asynchrone (Gestion d'erreur stricte)
     if (!mounted) return;
 
-    if (success) {
-      Navigator.pop(context);
-      AppExtension.snack(context, 'Personne créée avec succès', true);
-      ref.invalidate(listPersonProvider);
-    } else {
+    success.onError((e, st) {
       AppExtension.snack(context, 'Erreur lors de la création', false);
-    }
+      debugPrint(e.toString());
+      return false;
+    });
+
+    Navigator.pop(context);
+    AppExtension.snack(context, 'Personne créée avec succès', true);
   }
 
   @override
   Widget build(BuildContext context) {
     // 6. ref.watch utilisé légalement dans le build()
-    final isLoading = ref.watch(addPersonControllerProvider).isLoading;
+    final isLoading = ref
+        .watch(personListProvider)
+        .isLoading;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

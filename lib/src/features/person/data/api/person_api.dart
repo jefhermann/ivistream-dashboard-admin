@@ -12,8 +12,11 @@ abstract class PersonApi {
   factory PersonApi(Dio dio, {String baseUrl}) = _PersonApi;
 
   @GET('/admin/persons')
-  Future<DataResponse<PersonModel>> getPersons(@Query('q') String? query);
+  Future<DataResponse<PersonModel>> getPersons(@Query('q') String? query, @Query('page') int? page, @Query('limit') int? limit);
 
   @POST('/admin/persons')
   Future<DataResponse<PersonModel>> addPerson(@Body() PersonModel? body);
+
+  @PUT('/admin/persons/{id}')
+  Future<DataResponse<PersonModel>> updatePerson(@Body() PersonModel? body, @Path('id') String id);
 }
