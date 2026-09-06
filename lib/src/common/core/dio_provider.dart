@@ -1,10 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../common.dart';
-
 
 Future<String?> _refreshToken() async {
   final refreshToken = await SharedPreferencesService.getRefreshToken();
@@ -48,6 +46,7 @@ final dioProvider = Provider<Dio>((ref) {
       'Accept': 'application/json',
       'X-Client-Type': 'WEB_ADMIN',
     },
+    extra: {'withCredentials': true},
     connectTimeout: const Duration(seconds: 20),
     receiveTimeout: const Duration(seconds: 20),
   );
@@ -63,18 +62,10 @@ final dioProvider = Provider<Dio>((ref) {
           await refreshTokenFuture;
         }
 
-        final token = await SharedPreferencesService.getToken();
-
-        if (token != null && token.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (e.response?.statusCode == 401 &&
-            !e.requestOptions.path.contains('/auth/') &&
-            !e.requestOptions.path.contains('/admin/login')) {
+        if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('/auth/') && !e.requestOptions.path.contains('/admin/login')) {
           final String? newToken;
 
           if (refreshTokenFuture != null) {
@@ -104,15 +95,6 @@ final dioProvider = Provider<Dio>((ref) {
       },
     ),
   );
-
-  dio.interceptors.add(PrettyDioLogger(
-    requestHeader: true,
-    requestBody: true,
-    responseBody: true,
-    responseHeader: false,
-    error: true,
-    compact: true,
-  ));
 
   return dio;
 });

@@ -51,6 +51,36 @@ class _AuthApi implements AuthApi {
   }
 
   @override
+  Future<DataResponse<TokenModel>> logout() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<DataResponse<TokenModel>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/logout',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late DataResponse<TokenModel> _value;
+    try {
+      _value = DataResponse<TokenModel>.fromJson(
+        _result.data!,
+        (json) => TokenModel.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<DataResponse<AdminInfoModel>> profile() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

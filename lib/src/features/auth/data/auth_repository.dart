@@ -11,6 +11,8 @@ class AuthRepository {
 
   Future<DataResponse<AdminInfoModel>> login(String email, String password) async {
     try {
+      SharedPreferencesService.clear();
+
       final response = await _api.login(UserModel(email: email, password: password));
 
       if (response.hasError == true) {
@@ -39,6 +41,26 @@ class AuthRepository {
       }
 
       return response;
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final message = e.response!.data['message'];
+        throw Exception(message ?? "Une erreur inconnue est survenue");
+      }
+      throw Exception("Problème de connexion internet");
+    }
+  }
+
+  Future<bool> logout() async {
+    try {
+      final response = await _api.logout();
+
+      if (response.hasError == true) {
+        throw Exception(response.message);
+      }
+
+      var result = response.hasError ?? true;
+
+      return !result;
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];

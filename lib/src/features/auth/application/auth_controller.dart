@@ -51,12 +51,6 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> init() async {
     try {
-      final token = await SharedPreferencesService.getToken();
-
-      if (token == null || token.isEmpty) {
-        state = state.copyWith(isInitializing: false, isAuthenticated: false);
-        return;
-      }
 
       final response = await _repository.getUserInfos();
 
@@ -109,12 +103,18 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    var logout = await _repository.logout();
+    if (!logout) return;
+
     await SharedPreferencesService.clear();
+
     state = AuthState(
       isInitializing: false,
       isAuthenticated: false,
       user: null,
     );
+
+    return;
   }
 }
 

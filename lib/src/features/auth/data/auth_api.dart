@@ -13,6 +13,9 @@ abstract class AuthApi {
   @POST("/admin/login")
   Future<DataResponse<TokenModel>> login(@Body() UserModel user);
 
+  @POST("/admin/logout")
+  Future<DataResponse<TokenModel>> logout();
+
   @GET("/admin/me")
   Future<DataResponse<AdminInfoModel>> profile();
 }
