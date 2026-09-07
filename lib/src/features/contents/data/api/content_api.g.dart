@@ -297,6 +297,38 @@ class _ContentApi implements ContentApi {
   }
 
   @override
+  Future<DataResponse<ContentVideoModel>> getContentVideos(
+    String contentId,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<DataResponse<ContentVideoModel>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/contents/${contentId}/videos',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late DataResponse<ContentVideoModel> _value;
+    try {
+      _value = DataResponse<ContentVideoModel>.fromJson(
+        _result.data!,
+        (json) => ContentVideoModel.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<DataResponse<AdminContentModel>> publishContent(
     String contentId,
   ) async {

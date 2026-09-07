@@ -66,7 +66,7 @@ class ContentDetailScreen extends ConsumerWidget {
 }
 
 class _DesktopDetail extends ConsumerStatefulWidget {
-  final dynamic content;
+  final AdminContentModel content;
   final NumberFormat formatter;
 
   const _DesktopDetail({required this.content, required this.formatter});
@@ -76,7 +76,6 @@ class _DesktopDetail extends ConsumerStatefulWidget {
 }
 
 class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -110,7 +109,9 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
                 Spacers.min,
                 Row(
                   children: [
-                    Tooltip(message: 'Modifier', child: IconButton(onPressed: () => _onAction(widget.content, 'edit'), icon: const Icon(LucideIcons.pencil, size: 18, color: Colors.grey))),
+                    Tooltip(
+                        message: 'Modifier',
+                        child: IconButton(onPressed: () => _onAction(widget.content, 'edit'), icon: const Icon(LucideIcons.pencil, size: 18, color: Colors.grey))),
                     if (widget.content.status == 'draft' || widget.content.status == 'archived')
                       Tooltip(
                           message: 'Publier',
@@ -118,7 +119,8 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
                     if (widget.content.status == 'published')
                       Tooltip(
                           message: 'Archiver',
-                          child: IconButton(onPressed: () => _onAction(widget.content, 'archive'), icon: const Icon(LucideIcons.archive, size: 18, color: AppColors.colorRedSecondary))),
+                          child: IconButton(
+                              onPressed: () => _onAction(widget.content, 'archive'), icon: const Icon(LucideIcons.archive, size: 18, color: AppColors.colorRedSecondary))),
                   ],
                 ),
               ],
@@ -131,13 +133,16 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // _InfoCards(content: stats, formatter: formatter),
-                  _RevenueSection(contentId: widget.content.id, formatter: widget.formatter),
+                  _RevenueSection(contentId: widget.content.id ?? "", formatter: widget.formatter),
                   const SizedBox(height: 24),
                   _DetailSection(content: widget.content),
                   const SizedBox(height: 24),
                   _CastSection(content: widget.content),
                   const SizedBox(height: 24),
+                  _MovieSection(content: widget.content,),
+                  const SizedBox(height: 24),
                   _PricingSection(content: widget.content, formatter: widget.formatter),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -146,6 +151,7 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
       ],
     );
   }
+
   void _onAction(AdminContentModel content, String action) async {
     switch (action) {
       case 'publish':
@@ -172,19 +178,19 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
 
   Future<bool> _confirm(String title, String message) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: TitleText(title, fontSize: 18),
-        content: MediumText(message, fontSize: 14),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const MediumText('Annuler', fontSize: 14)),
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.colorBluePrimary),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const MediumText('Confirmer', fontSize: 14, color: Colors.white)),
-        ],
-      ),
-    ) ??
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: TitleText(title, fontSize: 18),
+            content: MediumText(message, fontSize: 14),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const MediumText('Annuler', fontSize: 14)),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.colorBluePrimary),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const MediumText('Confirmer', fontSize: 14, color: Colors.white)),
+            ],
+          ),
+        ) ??
         false;
   }
 
@@ -195,7 +201,7 @@ class _DesktopDetailState extends ConsumerState<_DesktopDetail> {
 }
 
 class _MobileDetail extends StatelessWidget {
-  final dynamic content;
+  final AdminContentModel content;
   final NumberFormat formatter;
 
   const _MobileDetail({required this.content, required this.formatter});
@@ -221,10 +227,10 @@ class _MobileDetail extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        _RevenueSection(contentId: content.id, formatter: formatter),
+        _RevenueSection(contentId: content.id ?? "", formatter: formatter),
         const SizedBox(height: 24),
-        _InfoCards(content: content, formatter: formatter),
-        const SizedBox(height: 24),
+        // _InfoCards(content: content, formatter: formatter),
+        // const SizedBox(height: 24),
         _DetailSection(content: content),
         const SizedBox(height: 24),
         _CastSection(content: content),
@@ -390,14 +396,14 @@ class _PricingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Prix de location', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 16),
+            Text('Prix de location', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            SizedBox(height: 16),
             // if (content.rentalPriceAfrica != null) _DetailRow('Zone Afrique', '${formatter.format(content.rentalPriceAfrica)} XOF'),
             // if (content.rentalPriceIntl != null) _DetailRow('Zone Internationale', '${content.rentalPriceIntl} EUR'),
             // if (content.rentalPriceAfrica == null && content.rentalPriceIntl == null) Text('Aucun prix configuré', style: TextStyle(color: Colors.grey.shade600)),
@@ -595,6 +601,127 @@ class _RevenueMini extends StatelessWidget {
         Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
       ],
+    );
+  }
+}
+
+class _MovieSection extends ConsumerWidget {
+  final AdminContentModel content;
+
+  const _MovieSection({required this.content});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final videos = ref.watch(contentVideosProvider(content.id ?? ''));
+    final appDio = ref.read(dioProvider);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('Vidéos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                if (content.isMovie)
+                  TextButton.icon(
+                    onPressed: () async {
+                      await showAddMovieVideoModal(
+                        context,
+                        apiDio: appDio,
+                        contentId: content.id ?? '',
+                        contentTitle: content.title ?? '',
+                      ).then((_) {
+                        ref.invalidate(contentVideosProvider(content.id ?? ''));
+                      });
+                    },
+                    label: const MediumText("Ajouter la Vidéo", fontSize: 14,),
+                    icon: const Icon(Icons.add),
+                  ),
+                const SizedBox(width: 16),
+                TextButton.icon(
+                  onPressed: () async {
+                    await showPromoVideosModal(
+                      context,
+                      apiDio: appDio,
+                      contentId: content.id ?? '',
+                      contentTitle: content.title ?? '',
+                    ).then((_) {
+                      ref.invalidate(contentVideosProvider(content.id ?? ''));
+                    });
+                  },
+                  label: const MediumText("Ajouter un trailer/preview", fontSize: 14,),
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            videos.when(
+                data: (data) {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: data?.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (ctx, index) {
+                      final video = data?[index];
+
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              if (video?.thumbnailUrl != null)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Image.network(video!.thumbnailUrl!, width: 96, height: 54, fit: BoxFit.cover),
+                                )
+                              else
+                                Container(
+                                  width: 116,
+                                  height: 74,
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  child: const Icon(Icons.movie_outlined),
+                                ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        TitleText(
+                                          video?.title ?? '',
+                                        ),
+                                        const SizedBox(width: 4),
+                                        BodyText("(${video?.roleLabel ?? ''})"),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    BodyText("Durée: ${video?.durationFormatted ?? ''}"),
+                                    const SizedBox(height: 2),
+                                    BodyText("Résolution: ${video?.resolution ?? ''}")
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    },
+                  );
+                },
+                error: (err, st) {
+                  debugPrintStack();
+                  return const Center(child: Text('Une erreur est survenue'));
+                },
+                loading: () => const CircularProgressIndicator()),
+          ],
+        ),
+      ),
     );
   }
 }

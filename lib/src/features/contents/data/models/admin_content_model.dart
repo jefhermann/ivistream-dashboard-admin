@@ -118,6 +118,14 @@ class AdminContentModel {
 
   String get accessLabel => access == 'premium' ? 'Premium' : 'Gratuit';
 
+  bool get isPremium => access == 'premium';
+
+  bool get isFree => access == 'free';
+
+  bool get isMovie => type == 'movie';
+
+  bool get isSeries => type == 'series';
+
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -170,34 +178,52 @@ class ContentGenreModel {
 
 
 class ContentVideoModel {
-  final String id;
-  final String role; // main, trailer, preview, recap
-  final int position;
-  final Map<String, dynamic>? video;
+  String? id;
+  String? role;
+  int? position;
+  String? videoId;
+  String? status;
+  String? title;
+  int? durationSeconds;
+  String? resolution;
+  String? thumbnailUrl;
 
-  ContentVideoModel({
-    required this.id,
-    required this.role,
-    required this.position,
-    this.video,
-  });
+  ContentVideoModel(
+      {this.id,
+        this.role,
+        this.position,
+        this.videoId,
+        this.status,
+        this.title,
+        this.durationSeconds,
+        this.resolution,
+        this.thumbnailUrl});
 
-  factory ContentVideoModel.fromJson(Map<String, dynamic> json) {
-    return ContentVideoModel(
-      id: json['id'] ?? '',
-      role: json['role'] ?? '',
-      position: json['position'] ?? 0,
-      video: json['videos'] is Map<String, dynamic> ? json['videos'] : null,
-    );
+  ContentVideoModel.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    role = json['role'];
+    position = json['position'];
+    videoId = json['videoId'];
+    status = json['status'];
+    title = json['title'];
+    durationSeconds = json['durationSeconds'];
+    resolution = json['resolution'];
+    thumbnailUrl = json['thumbnailUrl'];
   }
 
-  String get videoTitle => video?['title'] ?? 'Sans titre';
-
-  int get durationSeconds => video?['duration_seconds'] ?? 0;
-
-  String get videoStatus => video?['status'] ?? '';
-
-  String get resolution => video?['resolution'] ?? '';
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['role'] = role;
+    data['position'] = position;
+    data['videoId'] = videoId;
+    data['status'] = status;
+    data['durationSeconds'] = durationSeconds;
+    data['resolution'] = resolution;
+    data['title'] = title;
+    data['thumbnailUrl'] = thumbnailUrl;
+    return data;
+  }
 
   String get roleLabel {
     switch (role) {
@@ -210,16 +236,19 @@ class ContentVideoModel {
       case 'recap':
         return 'Résumé';
       default:
-        return role;
+        return role ?? "";
     }
   }
 
   String get durationFormatted {
-    final m = durationSeconds ~/ 60;
-    final s = durationSeconds % 60;
+    if(durationSeconds == null) return '-';
+
+    final m = durationSeconds! ~/ 60;
+    final s = durationSeconds! % 60;
     return '${m}m${s.toString().padLeft(2, '0')}s';
   }
 }
+
 
 class SeasonModel {
   final String? id;

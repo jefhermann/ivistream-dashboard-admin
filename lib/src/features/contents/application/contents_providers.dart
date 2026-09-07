@@ -139,6 +139,11 @@ final contentPayoutsProvider = FutureProvider.family.autoDispose<ContentPayoutSu
   return await repo.getPayoutsContent(contentId);
 });
 
+final contentVideosProvider = FutureProvider.family.autoDispose<List<ContentVideoModel>?, String>((ref, contentId) async{
+  final repo = ref.read(contentRepositoryProvider);
+  return await repo.getContentVideos(contentId);
+});
+
 class ContentCreationController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {

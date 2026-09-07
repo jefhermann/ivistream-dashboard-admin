@@ -44,6 +44,9 @@ abstract class ContentApi {
   @GET('/admin/contents/{contentId}')
   Future<DataResponse<AdminContentModel>> getContentDetail(@Path('contentId') String contentId);
 
+  @GET('/admin/contents/{contentId}/videos')
+  Future<DataResponse<ContentVideoModel>> getContentVideos(@Path('contentId') String contentId);
+
   @PATCH('/admin/contents/{contentId}/publish')
   Future<DataResponse<AdminContentModel>> publishContent(@Path('contentId') String contentId);
 

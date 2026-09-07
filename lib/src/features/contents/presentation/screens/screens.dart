@@ -3,3 +3,5 @@ export 'contents_screen.dart';
 export 'content_detail_screen.dart';
 export 'add_content_screen.dart';
 export 'edit_content_screen.dart';
+export 'add_movie_screen.dart';
+export 'add_trailers_screen.dart';

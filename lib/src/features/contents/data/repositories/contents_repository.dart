@@ -24,7 +24,6 @@ class ContentsRepository {
       }
 
       return (contents: response.items, pagination: response.pagination);
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -43,7 +42,6 @@ class ContentsRepository {
       }
 
       return response.item;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -51,12 +49,28 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
+  }
 
+  Future<List<ContentVideoModel>> getContentVideos(String contentId) async {
+    try {
+      final response = await _api.getContentVideos(contentId);
+
+      if (response.hasError == true) {
+        throw Exception(response.message);
+      }
+
+      return response.items ?? [];
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final message = e.response!.data['message'];
+        throw Exception(message ?? "Une erreur inconnue est survenue");
+      }
+      throw Exception("Problème de connexion internet");
+    }
   }
 
   Future<AdminContentModel?> createContent(CreateContentModel content) async {
     try {
-
       final partMap = content.toFormData();
 
       final response = await _api.addContent(partMap);
@@ -66,7 +80,6 @@ class ContentsRepository {
       }
 
       return response.item;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -78,7 +91,6 @@ class ContentsRepository {
 
   Future<bool?> updateContent(String contentId, CreateContentModel updates) async {
     try {
-
       final partMap = updates.toFormData();
 
       final response = await _api.updateContent(contentId, partMap);
@@ -88,7 +100,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -96,7 +107,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
   }
 
   Future<bool?> publishContent(String contentId) async {
@@ -108,7 +118,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -116,7 +125,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
   }
 
   Future<bool?> archiveContent(String contentId) async {
@@ -128,7 +136,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -136,8 +143,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
-
   }
 
   Future<bool?> updateGenres(String contentId, AdminContentModel updates) async {
@@ -149,7 +154,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -157,8 +161,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
-
   }
 
   Future<bool?> addSeason(String contentId, int number, String? title) async {
@@ -170,7 +172,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -178,8 +179,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
-
   }
 
   Future<bool?> addEpisode(String seasonId, {required int number, required String title, String? description, String? videoId}) async {
@@ -191,7 +190,6 @@ class ContentsRepository {
       }
 
       return response.hasError;
-
     } on DioException catch (e) {
       if (e.response != null && e.response!.data != null) {
         final message = e.response!.data['message'];
@@ -199,7 +197,6 @@ class ContentsRepository {
       }
       throw Exception("Problème de connexion internet");
     }
-
   }
 
   Future<void> linkVideo(String contentId, {required String videoId, required String role, int position = 0}) async {
