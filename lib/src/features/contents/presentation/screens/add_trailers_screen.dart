@@ -29,6 +29,34 @@ Future<void> showPromoVideosModal(
   );
 }
 
+/// Ouvre uniquement le formulaire d'ajout d'une bande-annonce ou d'un aperçu
+/// (sans passer par l'écran complet PromoVideosScreen) — utile quand la
+/// liste est déjà affichée ailleurs, ex: une section inline sur la page de
+/// détail du contenu, qui n'a besoin que de l'action d'ajout.
+Future<bool?> showAddPromoVideoModal(
+    BuildContext context, {
+      required Dio apiDio,
+      required String contentId,
+      required String role, // 'trailer' | 'preview'
+    }) {
+  return WoltModalSheet.show<bool>(
+    context: context,
+    modalTypeBuilder: responsiveModalType,
+    pageListBuilder: (modalSheetContext) => [
+      WoltModalSheetPage(
+        topBarTitle: Text(role == 'trailer' ? 'Ajouter une bande-annonce' : 'Ajouter un aperçu'),
+        isTopBarLayerAlwaysVisible: true,
+        resizeToAvoidBottomInset: true,
+        trailingNavBarWidget: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(modalSheetContext).pop(),
+        ),
+        child: _AddPromoVideoSheet(apiDio: apiDio, contentId: contentId, role: role),
+      ),
+    ],
+  );
+}
+
 /// Contenu de gestion des bandes-annonces et aperçus d'un contenu — les deux
 /// partagent le même modèle (content_videos, plusieurs par contenu, ordonnés
 /// par position), donc une seule requête GET /contents/:contentId/videos
@@ -75,25 +103,11 @@ class _PromoVideosScreenState extends State<PromoVideosScreen> {
   }
 
   Future<void> _openAddPromo(String role) async {
-    final created = await WoltModalSheet.show<bool>(
-      context: context,
-      modalTypeBuilder: responsiveModalType,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          topBarTitle: Text(role == 'trailer' ? 'Ajouter une bande-annonce' : 'Ajouter un aperçu'),
-          isTopBarLayerAlwaysVisible: true,
-          resizeToAvoidBottomInset: true,
-          trailingNavBarWidget: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(modalSheetContext).pop(),
-          ),
-          child: _AddPromoVideoSheet(
-            apiDio: widget.apiDio,
-            contentId: widget.contentId,
-            role: role,
-          ),
-        ),
-      ],
+    final created = await showAddPromoVideoModal(
+      context,
+      apiDio: widget.apiDio,
+      contentId: widget.contentId,
+      role: role,
     );
     if (created == true) _loadVideos();
   }

@@ -20,6 +20,7 @@ class AdminContentModel {
   final Map<String, dynamic>? metadata;
   final String? createdAt;
   final String? publishedAt;
+  final num? rentalPrice;
   final CountryModel? country;
 
   // Joined
@@ -50,7 +51,7 @@ class AdminContentModel {
     this.producers,
     this.genres,
     this.videos,
-    this.seasons, this.persons, this.country,
+    this.seasons, this.persons, this.country, this.rentalPrice,
   });
 
   factory AdminContentModel.fromJson(Map<String, dynamic> json) {
@@ -76,6 +77,7 @@ class AdminContentModel {
       seasons: json['seasons'] != null ? (json['seasons'] as List).map((s) => SeasonModel.fromJson(s)).toList() : null,
       persons: json['persons'] != null ? (json['persons'] as List).map((p) => PersonModel.fromJson(p)).toList() : null,
       genreIds: json['genreIds'],
+      rentalPrice: json['rental_price'],
       country: json['origin_country'] != null ? CountryModel.fromJson(json['origin_country']) : null,
     );
   }
@@ -176,7 +178,6 @@ class ContentGenreModel {
   }
 }
 
-
 class ContentVideoModel {
   String? id;
   String? role;
@@ -249,80 +250,113 @@ class ContentVideoModel {
   }
 }
 
-
 class SeasonModel {
-  final String? id;
-  final int? number;
-  final String? title;
-  final List<EpisodeModel>? episodes;
+  String? id;
+  int? number;
+  String? title;
+  String? posterUrl;
+  List<EpisodesModel>? episodes;
 
-  SeasonModel({this.id, this.number, this.title, this.episodes});
+  SeasonModel(
+      {this.id, this.number, this.title, this.posterUrl, this.episodes});
 
-  factory SeasonModel.fromJson(Map<String, dynamic> json) {
-    return SeasonModel(
-      id: json['id'] ?? '',
-      number: json['number'] ?? 0,
-      title: json['title'],
-      episodes: json['episodes'] != null ? (json['episodes'] as List).map((e) => EpisodeModel.fromJson(e)).toList() : null,
-    );
+  SeasonModel.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    number = json['number'];
+    title = json['title'];
+    posterUrl = json['posterUrl'];
+    if (json['episodes'] != null) {
+      episodes = <EpisodesModel>[];
+      json['episodes'].forEach((v) {
+        episodes!.add(EpisodesModel.fromJson(v));
+      });
+    }
   }
 
-  String get displayTitle => title ?? 'Saison $number';
-
   Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
-      if (number != null) 'number': number,
-      if (title != null) 'title': title,
-      if (episodes != null) 'episodes': episodes?.map((e) => e.id).toList(),
-    };
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['number'] = number;
+    data['title'] = title;
+    data['posterUrl'] = posterUrl;
+    if (episodes != null) {
+      data['episodes'] = episodes!.map((v) => v.toJson()).toList();
+    }
+    return data;
   }
 }
 
-class EpisodeModel {
-  final String? id;
-  final int? number;
-  final String? title;
-  final String? description;
-  final String? thumbnailUrl;
-  final String? videoId;
-  final Map<String, dynamic>? video;
+class EpisodesModel {
+  String? id;
+  int? number;
+  String? title;
+  String? description;
+  String? thumbnailUrl;
+  String? videoStatus;
+  int? durationSeconds;
 
-  EpisodeModel({
-    this.id,
-    this.number,
-    this.title,
-    this.description,
-    this.thumbnailUrl,
-    this.videoId,
-    this.video,
-  });
+  EpisodesModel(
+      {this.id,
+        this.number,
+        this.title,
+        this.description,
+        this.thumbnailUrl,
+        this.videoStatus,
+        this.durationSeconds});
 
-  factory EpisodeModel.fromJson(Map<String, dynamic> json) {
-    return EpisodeModel(
-      id: json['id'] ?? '',
-      number: json['number'] ?? 0,
-      title: json['title'] ?? '',
-      description: json['description'],
-      thumbnailUrl: json['thumbnail_url'],
-      videoId: json['video_id'],
-      video: json['videos'] is Map<String, dynamic> ? json['videos'] : null,
-    );
+  EpisodesModel.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    number = json['number'];
+    title = json['title'];
+    description = json['description'];
+    thumbnailUrl = json['thumbnailUrl'];
+    videoStatus = json['videoStatus'];
+    durationSeconds = json['durationSeconds'];
   }
-
-  int get durationSeconds => video?['duration_seconds'] ?? 0;
-
-  String get videoStatus => video?['status'] ?? '';
 
   Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
-      if (number != null) 'number': number,
-      if (title != null) 'title': title,
-      if (description != null) 'description': description,
-      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-      if (videoId != null) 'video_id': videoId,
-      if (video != null) 'videos': video
-    };
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['number'] = number;
+    data['title'] = title;
+    data['description'] = description;
+    data['thumbnailUrl'] = thumbnailUrl;
+    data['videoStatus'] = videoStatus;
+    data['durationSeconds'] = durationSeconds;
+    return data;
   }
 }
+
+class StatContentModel {
+  num? totalViews;
+  num? totalWatchMinutes;
+  num? averageWatchMinutes;
+  num? uniqueViewers;
+  num? completionRate;
+
+  StatContentModel(
+      {this.totalViews,
+        this.totalWatchMinutes,
+        this.averageWatchMinutes,
+        this.uniqueViewers,
+        this.completionRate});
+
+  StatContentModel.fromJson(Map<String, dynamic> json) {
+    totalViews = json['totalViews'];
+    totalWatchMinutes = json['totalWatchMinutes'];
+    averageWatchMinutes = json['averageWatchMinutes'];
+    uniqueViewers = json['uniqueViewers'];
+    completionRate = json['completionRate'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['totalViews'] = totalViews;
+    data['totalWatchMinutes'] = totalWatchMinutes;
+    data['averageWatchMinutes'] = averageWatchMinutes;
+    data['uniqueViewers'] = uniqueViewers;
+    data['completionRate'] = completionRate;
+    return data;
+  }
+}
+

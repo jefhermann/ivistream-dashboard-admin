@@ -36,7 +36,7 @@ abstract class ContentApi {
   Future<DataResponse<AdminContentModel>> addSeason(@Path('contentId') String contentId, @Body() SeasonModel body);
 
   @POST('/admin/contents/seasons/{seasonId}/episodes')
-  Future<DataResponse<AdminContentModel>> addEpisode(@Path('seasonId') String seasonId, @Body() EpisodeModel body);
+  Future<DataResponse<AdminContentModel>> addEpisode(@Path('seasonId') String seasonId, @Body() EpisodesModel body);
 
   @PUT('/admin/contents/{contentId}/genres')
   Future<DataResponse<AdminContentModel>> updateGenresContent(@Path('contentId') String contentId, @Body() AdminContentModel body);
@@ -46,6 +46,12 @@ abstract class ContentApi {
 
   @GET('/admin/contents/{contentId}/videos')
   Future<DataResponse<ContentVideoModel>> getContentVideos(@Path('contentId') String contentId);
+
+  @GET('/admin/contents/{contentId}/seasons')
+  Future<DataResponse<SeasonModel>> getContentSeasonVideos(@Path('contentId') String contentId);
+
+  @GET('/admin/stats/contents/{contentId}')
+  Future<DataResponse<StatContentModel>> getContentStats(@Path('contentId') String contentId);
 
   @PATCH('/admin/contents/{contentId}/publish')
   Future<DataResponse<AdminContentModel>> publishContent(@Path('contentId') String contentId);

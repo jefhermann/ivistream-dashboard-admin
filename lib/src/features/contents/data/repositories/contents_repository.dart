@@ -69,6 +69,42 @@ class ContentsRepository {
     }
   }
 
+  Future<List<SeasonModel>> getContentSeasonVideos(String contentId) async {
+    try {
+      final response = await _api.getContentSeasonVideos(contentId);
+
+      if (response.hasError == true) {
+        throw Exception(response.message);
+      }
+
+      return response.items ?? [];
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final message = e.response!.data['message'];
+        throw Exception(message ?? "Une erreur inconnue est survenue");
+      }
+      throw Exception("Problème de connexion internet");
+    }
+  }
+
+  Future<StatContentModel?> getContentStats(String contentId) async {
+    try {
+      final response = await _api.getContentStats(contentId);
+
+      if (response.hasError == true) {
+        throw Exception(response.message);
+      }
+
+      return response.item;
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final message = e.response!.data['message'];
+        throw Exception(message ?? "Une erreur inconnue est survenue");
+      }
+      throw Exception("Problème de connexion internet");
+    }
+  }
+
   Future<AdminContentModel?> createContent(CreateContentModel content) async {
     try {
       final partMap = content.toFormData();
@@ -166,24 +202,6 @@ class ContentsRepository {
   Future<bool?> addSeason(String contentId, int number, String? title) async {
     try {
       final response = await _api.addSeason(contentId, SeasonModel(number: number, title: title));
-
-      if (response.hasError == true) {
-        throw Exception(response.message);
-      }
-
-      return response.hasError;
-    } on DioException catch (e) {
-      if (e.response != null && e.response!.data != null) {
-        final message = e.response!.data['message'];
-        throw Exception(message ?? "Une erreur inconnue est survenue");
-      }
-      throw Exception("Problème de connexion internet");
-    }
-  }
-
-  Future<bool?> addEpisode(String seasonId, {required int number, required String title, String? description, String? videoId}) async {
-    try {
-      final response = await _api.addEpisode(seasonId, EpisodeModel(number: number, title: title, description: description, videoId: videoId));
 
       if (response.hasError == true) {
         throw Exception(response.message);

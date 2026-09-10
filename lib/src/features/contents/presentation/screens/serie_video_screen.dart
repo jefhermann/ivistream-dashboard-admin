@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:ivistream_dashboard_admin/src/features/contents/contents.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import '../../../../common/common.dart';
@@ -8,11 +9,11 @@ import '../../../../common/common.dart';
 /// plein écran — dialog sur large écran (desktop web), bottom sheet en
 /// dessous de 700px.
 Future<void> showSeriesVideosModal(
-    BuildContext context, {
-      required Dio apiDio,
-      required String contentId,
-      required String contentTitle,
-    }) {
+  BuildContext context, {
+  required Dio apiDio,
+  required String contentId,
+  required String contentTitle,
+}) {
   return WoltModalSheet.show<void>(
     context: context,
     modalTypeBuilder: responsiveModalType,
@@ -25,6 +26,59 @@ Future<void> showSeriesVideosModal(
           onPressed: () => Navigator.of(modalSheetContext).pop(),
         ),
         child: SeriesVideosScreen(apiDio: apiDio, contentId: contentId),
+      ),
+    ],
+  );
+}
+
+/// Ouvre uniquement le formulaire d'ajout de saison (sans passer par l'écran
+/// complet SeriesVideosScreen) — utile quand la liste des saisons est déjà
+/// affichée ailleurs, ex: une section inline sur la page de détail du
+/// contenu, qui n'a besoin que de l'action d'ajout.
+Future<bool?> showAddSeasonModal(
+  BuildContext context, {
+  required Dio apiDio,
+  required String contentId,
+  required int nextNumber,
+}) {
+  return WoltModalSheet.show<bool>(
+    context: context,
+    modalTypeBuilder: responsiveModalType,
+    pageListBuilder: (modalSheetContext) => [
+      WoltModalSheetPage(
+        topBarTitle: const Text('Ajouter une saison'),
+        isTopBarLayerAlwaysVisible: true,
+        resizeToAvoidBottomInset: true,
+        trailingNavBarWidget: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(modalSheetContext).pop(),
+        ),
+        child: _AddSeasonSheet(apiDio: apiDio, contentId: contentId, nextNumber: nextNumber),
+      ),
+    ],
+  );
+}
+
+/// Idem pour l'ajout d'épisode dans une saison donnée.
+Future<bool?> showAddEpisodeModal(
+  BuildContext context, {
+  required Dio apiDio,
+  required String contentId,
+  required int seasonNumber,
+}) {
+  return WoltModalSheet.show<bool>(
+    context: context,
+    modalTypeBuilder: responsiveModalType,
+    pageListBuilder: (modalSheetContext) => [
+      WoltModalSheetPage(
+        topBarTitle: Text('Saison $seasonNumber — nouvel épisode'),
+        isTopBarLayerAlwaysVisible: true,
+        resizeToAvoidBottomInset: true,
+        trailingNavBarWidget: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(modalSheetContext).pop(),
+        ),
+        child: _AddEpisodeSheet(apiDio: apiDio, contentId: contentId, seasonNumber: seasonNumber),
       ),
     ],
   );
@@ -54,7 +108,7 @@ class SeriesVideosScreen extends StatefulWidget {
 
 class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
   bool _loading = true;
-  List<Map<String, dynamic>> _seasons = [];
+  List<SeasonModel> _seasons = [];
 
   @override
   void initState() {
@@ -67,7 +121,7 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
     try {
       final response = await widget.apiDio.get('/admin/contents/${widget.contentId}/seasons');
       setState(() {
-        _seasons = (response.data['items'] as List).cast<Map<String, dynamic>>();
+        _seasons = (response.data['items'] as List).cast<SeasonModel>();
         _loading = false;
       });
     } catch (_) {
@@ -76,53 +130,23 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
   }
 
   Future<void> _openAddSeason() async {
-    final nextNumber = _seasons.isEmpty
-        ? 1
-        : (_seasons.map((s) => s['number'] as int).reduce((a, b) => a > b ? a : b) + 1);
+    final nextNumber = _seasons.isEmpty ? 1 : (_seasons.map((s) => s.number ?? 0).reduce((a, b) => a > b ? a : b) + 1);
 
-    final created = await WoltModalSheet.show<bool>(
-      context: context,
-      modalTypeBuilder: responsiveModalType,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          topBarTitle: const Text('Ajouter une saison'),
-          isTopBarLayerAlwaysVisible: true,
-          resizeToAvoidBottomInset: true,
-          trailingNavBarWidget: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(modalSheetContext).pop(),
-          ),
-          child: _AddSeasonSheet(
-            apiDio: widget.apiDio,
-            contentId: widget.contentId,
-            nextNumber: nextNumber,
-          ),
-        ),
-      ],
+    final created = await showAddSeasonModal(
+      context,
+      apiDio: widget.apiDio,
+      contentId: widget.contentId,
+      nextNumber: nextNumber,
     );
     if (created == true) _loadSeasons();
   }
 
   Future<void> _openAddEpisode(int seasonNumber) async {
-    final created = await WoltModalSheet.show<bool>(
-      context: context,
-      modalTypeBuilder: responsiveModalType,
-      pageListBuilder: (modalSheetContext) => [
-        WoltModalSheetPage(
-          topBarTitle: Text('Saison $seasonNumber — nouvel épisode'),
-          isTopBarLayerAlwaysVisible: true,
-          resizeToAvoidBottomInset: true,
-          trailingNavBarWidget: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(modalSheetContext).pop(),
-          ),
-          child: _AddEpisodeSheet(
-            apiDio: widget.apiDio,
-            contentId: widget.contentId,
-            seasonNumber: seasonNumber,
-          ),
-        ),
-      ],
+    final created = await showAddEpisodeModal(
+      context,
+      apiDio: widget.apiDio,
+      contentId: widget.contentId,
+      seasonNumber: seasonNumber,
     );
     if (created == true) _loadSeasons();
   }
@@ -159,13 +183,13 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
     );
   }
 
-  Widget _buildSeasonCard(Map<String, dynamic> season) {
-    final episodes = (season['episodes'] as List).cast<Map<String, dynamic>>();
+  Widget _buildSeasonCard(SeasonModel season) {
+    final episodes = season.episodes ?? [];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
-        title: Text(season['title'] as String? ?? 'Saison ${season['number']}'),
+        title: Text(season.title ?? 'Saison ${season.number}'),
         subtitle: Text('${episodes.length} épisode${episodes.length > 1 ? 's' : ''}'),
         children: [
           ...episodes.map(_buildEpisodeTile),
@@ -174,7 +198,7 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: () => _openAddEpisode(season['number'] as int),
+                onPressed: () => _openAddEpisode(season.number ?? 0),
                 icon: const Icon(Icons.add),
                 label: const Text('Épisode'),
               ),
@@ -185,9 +209,9 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
     );
   }
 
-  Widget _buildEpisodeTile(Map<String, dynamic> episode) {
-    final status = episode['videoStatus'] as String?;
-    final thumbnailUrl = episode['thumbnailUrl'] as String?;
+  Widget _buildEpisodeTile(EpisodesModel episode) {
+    final status = episode.videoStatus;
+    final thumbnailUrl = episode.thumbnailUrl;
 
     return ListTile(
       leading: SizedBox(
@@ -195,18 +219,18 @@ class _SeriesVideosScreenState extends State<SeriesVideosScreen> {
         height: 32,
         child: thumbnailUrl != null
             ? ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: Image.network(thumbnailUrl, fit: BoxFit.cover),
-        )
+                borderRadius: BorderRadius.circular(4),
+                child: Image.network(thumbnailUrl, fit: BoxFit.cover),
+              )
             : Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Icon(
-            status == null ? Icons.videocam_off_outlined : Icons.hourglass_empty,
-            size: 16,
-          ),
-        ),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  status == null ? Icons.videocam_off_outlined : Icons.hourglass_empty,
+                  size: 16,
+                ),
+              ),
       ),
-      title: Text('${episode['number']}. ${episode['title']}'),
+      title: Text('${episode.number}. ${episode.title}'),
       subtitle: Text(_statusLabel(status)),
     );
   }
@@ -245,8 +269,7 @@ class _AddSeasonSheet extends StatefulWidget {
 }
 
 class _AddSeasonSheetState extends State<_AddSeasonSheet> {
-  late final TextEditingController _numberController =
-  TextEditingController(text: widget.nextNumber.toString());
+  late final TextEditingController _numberController = TextEditingController(text: widget.nextNumber.toString());
   final TextEditingController _titleController = TextEditingController();
   bool _submitting = false;
   String? _error;
@@ -313,10 +336,10 @@ class _AddSeasonSheetState extends State<_AddSeasonSheet> {
               onPressed: _submitting ? null : _submit,
               child: _submitting
                   ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Text('Créer'),
             ),
           ),
@@ -388,9 +411,7 @@ class _AddEpisodeSheetState extends State<_AddEpisodeSheet> {
               'seasonNumber': widget.seasonNumber,
               'episodeNumber': int.tryParse(_numberController.text) ?? 0,
               'title': _titleController.text.trim(),
-              'description': _descriptionController.text.trim().isEmpty
-                  ? null
-                  : _descriptionController.text.trim(),
+              'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
             },
             label: 'Vidéo',
             onCompleted: (result) {
