@@ -25,7 +25,7 @@ final dioProvider = Provider<Dio>((ref) {
     QueuedInterceptorsWrapper(
       onError: (DioException e, handler) async {
         final path = e.requestOptions.path;
-        final isAuthRoute = path.contains('/auth/refresh') || path.contains('/admin/login');
+        final isAuthRoute = path.contains('/admin/refresh') || path.contains('/admin/login');
 
         if (e.response?.statusCode == 401 && !isAuthRoute) {
           refreshingFuture ??= _refreshSession(dio);
@@ -51,7 +51,7 @@ final dioProvider = Provider<Dio>((ref) {
 
 Future<bool> _refreshSession(Dio dio) async {
   try {
-    final response = await dio.post('/auth/refresh');
+    final response = await dio.post('/admin/refresh');
     return response.statusCode == 200 || response.statusCode == 201;
   } on DioException catch (e) {
     debugPrint("--- SESSION REFRESH FAILED: $e ---");
