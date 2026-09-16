@@ -9,7 +9,7 @@ class AuthRepository {
 
   AuthRepository(this._api);
 
-  Future<DataResponse<AdminInfoModel>> login(String email, String password) async {
+  Future<DataResponse<UserModel>> login(String email, String password) async {
     try {
       SharedPreferencesService.clear();
 
@@ -32,7 +32,7 @@ class AuthRepository {
     }
   }
 
-  Future<DataResponse<AdminInfoModel>> getUserInfos() async {
+  Future<DataResponse<UserModel>> getUserInfos() async {
     try {
       final response = await _api.profile();
 

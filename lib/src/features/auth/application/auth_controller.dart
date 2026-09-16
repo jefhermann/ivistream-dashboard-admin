@@ -63,7 +63,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: true,
-        user: data.user,
+        user: data,
       );
     } catch (e) {
       state = state.copyWith(
@@ -90,7 +90,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-        user: data.user,
+        user: data,
       );
       return true;
     } catch (e) {

@@ -81,12 +81,12 @@ class _AuthApi implements AuthApi {
   }
 
   @override
-  Future<DataResponse<AdminInfoModel>> profile() async {
+  Future<DataResponse<UserModel>> profile() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<DataResponse<AdminInfoModel>>(
+    final _options = _setStreamType<DataResponse<UserModel>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -97,11 +97,11 @@ class _AuthApi implements AuthApi {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late DataResponse<AdminInfoModel> _value;
+    late DataResponse<UserModel> _value;
     try {
-      _value = DataResponse<AdminInfoModel>.fromJson(
+      _value = DataResponse<UserModel>.fromJson(
         _result.data!,
-        (json) => AdminInfoModel.fromJson(json as Map<String, dynamic>),
+        (json) => UserModel.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);

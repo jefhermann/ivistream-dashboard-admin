@@ -17,5 +17,5 @@ abstract class AuthApi {
   Future<DataResponse<TokenModel>> logout();
 
   @GET("/admin/me")
-  Future<DataResponse<AdminInfoModel>> profile();
+  Future<DataResponse<UserModel>> profile();
 }

@@ -1,1 +1,1 @@
-export 'screens/admin_team_screen.dart';
+export 'screens/screens.dart';
