@@ -40,33 +40,15 @@ class _RevenuesScreenState extends ConsumerState<RevenuesScreen> with SingleTick
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
 
-    return Column(
-      children: [
-        Container(
-          color: Colors.white,
-          child: TabBar(
-            controller: _tabController,
-            labelColor: AppColors.colorBluePrimary,
-            unselectedLabelColor: AppColors.colorGrayDark,
-            indicatorColor: AppColors.colorBluePrimary,
-            labelStyle: mediumTextStyle(fontSize: 14),
-            unselectedLabelStyle: basicTextStyle(fontSize: 14),
-            tabs: const [
-              Tab(text: 'Vue d\'ensemble'),
-              Tab(text: 'Payouts'),
-            ],
-          ),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _OverviewTab(isMobile: isMobile),
-              _PayoutsTab(isMobile: isMobile, onRefresh: _loadPayouts),
-            ],
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _OverviewTab(isMobile: isMobile),
+          _PayoutsTab(isMobile: isMobile, onRefresh: _loadPayouts),
+        ],
+      ),
     );
   }
 }
@@ -77,6 +59,7 @@ class _RevenuesScreenState extends ConsumerState<RevenuesScreen> with SingleTick
 
 class _OverviewTab extends ConsumerWidget {
   final bool isMobile;
+
   const _OverviewTab({required this.isMobile});
 
   @override
@@ -89,7 +72,6 @@ class _OverviewTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Erreur: $e', style: basicTextStyle(color: AppColors.colorRedSecondary))),
       data: (overview) => SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -102,10 +84,30 @@ class _OverviewTab extends ConsumerWidget {
             Wrap(
               spacing: 16, runSpacing: 16,
               children: [
-                _RevenueCard(icon: LucideIcons.trendingUp, label: 'CA Total', value: '${currencyFormat.format(overview.totalGross)} ${overview.currency}', color: AppColors.colorBluePrimary, isMobile: isMobile),
-                _RevenueCard(icon: LucideIcons.building2, label: 'Part Producteurs', value: '${currencyFormat.format(overview.totalProducer)} ${overview.currency}', color: const Color(0xFF10B981), isMobile: isMobile),
-                _RevenueCard(icon: LucideIcons.landmark, label: 'Part Plateforme', value: '${currencyFormat.format(overview.totalPlatform)} ${overview.currency}', color: const Color(0xFF8B5CF6), isMobile: isMobile),
-                _RevenueCard(icon: LucideIcons.clock, label: 'Payouts en attente', value: '${overview.pendingPayoutsCount} (${currencyFormat.format(overview.pendingPayoutsAmount)} ${overview.currency})', color: const Color(0xFFF59E0B), isMobile: isMobile),
+                _RevenueCard(
+                    icon: LucideIcons.trendingUp,
+                    label: 'CA Total',
+                    value: '${currencyFormat.format(overview.totalGross)} ${overview.currency}',
+                    color: AppColors.colorBluePrimary,
+                    isMobile: isMobile),
+                _RevenueCard(
+                    icon: LucideIcons.building2,
+                    label: 'Part Producteurs',
+                    value: '${currencyFormat.format(overview.totalProducer)} ${overview.currency}',
+                    color: const Color(0xFF10B981),
+                    isMobile: isMobile),
+                _RevenueCard(
+                    icon: LucideIcons.landmark,
+                    label: 'Part Plateforme',
+                    value: '${currencyFormat.format(overview.totalPlatform)} ${overview.currency}',
+                    color: const Color(0xFF8B5CF6),
+                    isMobile: isMobile),
+                _RevenueCard(
+                    icon: LucideIcons.clock,
+                    label: 'Payouts en attente',
+                    value: '${overview.pendingPayoutsCount} (${currencyFormat.format(overview.pendingPayoutsAmount)} ${overview.currency})',
+                    color: const Color(0xFFF59E0B),
+                    isMobile: isMobile),
               ],
             ),
             const SizedBox(height: 24),
@@ -117,8 +119,16 @@ class _OverviewTab extends ConsumerWidget {
                 icon: LucideIcons.chartPie,
                 child: Column(
                   children: overview.bySource.entries.map((entry) {
-                    final label = entry.key == 'subscription' ? 'Abonnements' : entry.key == 'rental' ? 'Locations' : 'Publicité';
-                    final color = entry.key == 'subscription' ? AppColors.colorBluePrimary : entry.key == 'rental' ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
+                    final label = entry.key == 'subscription'
+                        ? 'Abonnements'
+                        : entry.key == 'rental'
+                            ? 'Locations'
+                            : 'Publicité';
+                    final color = entry.key == 'subscription'
+                        ? AppColors.colorBluePrimary
+                        : entry.key == 'rental'
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFF59E0B);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Row(children: [
@@ -177,31 +187,36 @@ class _OverviewTab extends ConsumerWidget {
             producersAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => const SizedBox.shrink(),
-              data: (producers) => producers.isEmpty ? const SizedBox.shrink() : _SectionCard(
-                title: 'Revenus par producteur',
-                icon: LucideIcons.users,
-                child: Column(
-                  children: producers.take(10).map((p) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
-                        child: Text(p.producerName[0].toUpperCase(), style: boldTextStyle(color: const Color(0xFF10B981), fontSize: 12)),
+              data: (producers) => producers.isEmpty
+                  ? const SizedBox.shrink()
+                  : _SectionCard(
+                      title: 'Revenus par producteur',
+                      icon: LucideIcons.users,
+                      child: Column(
+                        children: producers
+                            .take(10)
+                            .map((p) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(children: [
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
+                                      child: Text(p.producerName[0].toUpperCase(), style: boldTextStyle(color: const Color(0xFF10B981), fontSize: 12)),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(child: Text(p.producerName, style: mediumTextStyle(fontSize: 14))),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text('${currencyFormat.format(p.totalGross)} ${overview.currency}', style: boldTextStyle(fontSize: 13)),
+                                        Text('Part prod: ${currencyFormat.format(p.totalProducer)}', style: basicTextStyle(fontSize: 11, color: AppColors.colorGrayDark)),
+                                      ],
+                                    ),
+                                  ]),
+                                ))
+                            .toList(),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(p.producerName, style: mediumTextStyle(fontSize: 14))),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('${currencyFormat.format(p.totalGross)} ${overview.currency}', style: boldTextStyle(fontSize: 13)),
-                          Text('Part prod: ${currencyFormat.format(p.totalProducer)}', style: basicTextStyle(fontSize: 11, color: AppColors.colorGrayDark)),
-                        ],
-                      ),
-                    ]),
-                  )).toList(),
-                ),
-              ),
+                    ),
             ),
           ],
         ),
@@ -229,12 +244,14 @@ class _RevenueCard extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
         child: Row(children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: basicTextStyle(color: AppColors.colorGrayDark, fontSize: 13)),
             const SizedBox(height: 4),
             Text(value, style: boldTextStyle(fontSize: 17)),
@@ -287,43 +304,65 @@ class _PayoutsTab extends ConsumerWidget {
     final currencyFormat = NumberFormat('#,###', 'fr_FR');
     final dateFormat = DateFormat('dd/MM/yyyy', 'fr_FR');
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Payouts', style: boldTextStyle(fontSize: isMobile ? 22 : 28)),
-        const SizedBox(height: 4),
-        Text(state.pagination != null ? '${state.pagination!.total} payouts' : 'Chargement...', style: basicTextStyle(color: AppColors.colorGrayDark)),
-        const SizedBox(height: 20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Text('Payouts', style: boldTextStyle(fontSize: isMobile ? 22 : 28)),
+        // const SizedBox(height: 4),
 
         // Filters
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-          child: Wrap(spacing: 12, runSpacing: 12, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            _FilterChip(label: 'Statut', value: filters.status, options: const {
-              'pending': 'En attente', 'calculated': 'Calculé', 'approved': 'Approuvé', 'paid': 'Payé', 'disputed': 'Contesté',
-            }, onChanged: (val) {
-              ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(status: val, page: 1, clearStatus: val == null);
-              onRefresh();
-            }),
-            if (filters.status != null)
-              TextButton.icon(
-                onPressed: () { ref.read(payoutsFilterProvider.notifier).state = PayoutsFilterState(); onRefresh(); },
-                icon: const Icon(LucideIcons.x, size: 16),
-                label: Text('Effacer', style: basicTextStyle(fontSize: 13, color: AppColors.colorRedSecondary)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(state.pagination != null ? '${state.pagination!.total} payouts' : 'Chargement...', style: basicTextStyle(color: AppColors.colorGrayDark)),
+                  const SizedBox(width: 30),
+                  Wrap(spacing: 12, runSpacing: 12, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                    _FilterChip(
+                        label: 'Statut',
+                        value: filters.status,
+                        options: const {
+                          'pending': 'En attente',
+                          'calculated': 'Calculé',
+                          'approved': 'Approuvé',
+                          'paid': 'Payé',
+                          'disputed': 'Contesté',
+                        },
+                        onChanged: (val) {
+                          ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(status: val, page: 1, clearStatus: val == null);
+                          onRefresh();
+                        }),
+                    if (filters.status != null)
+                      TextButton.icon(
+                        onPressed: () {
+                          ref.read(payoutsFilterProvider.notifier).state = PayoutsFilterState();
+                          onRefresh();
+                        },
+                        icon: const Icon(LucideIcons.x, size: 16),
+                        label: Text('Effacer', style: basicTextStyle(fontSize: 13, color: AppColors.colorRedSecondary)),
+                      ),
+                  ]),
+                ],
               ),
-          ]),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
 
         // List
-        if (state.isLoading) const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+        if (state.isLoading)
+          const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
         else if (state.error != null)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: AppColors.colorRedSecondary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
             child: Row(children: [
-              Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 20),
+              const Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 20),
               const SizedBox(width: 8),
               Expanded(child: Text(state.error!, style: basicTextStyle(color: AppColors.colorRedSecondary, fontSize: 13))),
               TextButton(onPressed: onRefresh, child: Text('Réessayer', style: mediumTextStyle(fontSize: 13, color: AppColors.colorBluePrimary))),
@@ -333,8 +372,9 @@ class _PayoutsTab extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-            child: Center(child: Column(children: [
-              Icon(LucideIcons.handCoins, size: 40, color: AppColors.colorGrayDark),
+            child: Center(
+                child: Column(children: [
+              const Icon(LucideIcons.handCoins, size: 40, color: AppColors.colorGrayDark),
               const SizedBox(height: 12),
               Text('Aucun payout', style: mediumTextStyle(color: AppColors.colorGrayDark)),
             ])),
@@ -343,25 +383,26 @@ class _PayoutsTab extends ConsumerWidget {
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
             child: Column(children: [
-              if (!isMobile) Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
-                child: Row(children: [
-                  Expanded(flex: 3, child: Text('Producteur', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-                  Expanded(flex: 2, child: Text('Source', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-                  Expanded(flex: 2, child: Text('Période', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-                  Expanded(flex: 2, child: Text('Montant', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-                  Expanded(flex: 2, child: Text('Statut', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-                  const SizedBox(width: 120),
-                ]),
-              ),
+              if (!isMobile)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+                  child: Row(children: [
+                    Expanded(flex: 3, child: Text('Producteur', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+                    Expanded(flex: 2, child: Text('Source', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+                    Expanded(flex: 2, child: Text('Période', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+                    Expanded(flex: 2, child: Text('Montant', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+                    Expanded(flex: 2, child: Text('Statut', style: mediumTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+                    const SizedBox(width: 120),
+                  ]),
+                ),
               ...state.payouts.map((payout) => _PayoutRow(
-                payout: payout,
-                isMobile: isMobile,
-                currencyFormat: currencyFormat,
-                dateFormat: dateFormat,
-                onAction: (action) => _handleAction(context, ref, payout, action),
-              )),
+                    payout: payout,
+                    isMobile: isMobile,
+                    currencyFormat: currencyFormat,
+                    dateFormat: dateFormat,
+                    onAction: (action) => _handleAction(context, ref, payout, action),
+                  )),
             ]),
           ),
 
@@ -371,13 +412,27 @@ class _PayoutsTab extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              IconButton(onPressed: filters.page > 1 ? () { ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(page: filters.page - 1); onRefresh(); } : null, icon: const Icon(LucideIcons.chevronLeft, size: 20)),
+              IconButton(
+                  onPressed: filters.page > 1
+                      ? () {
+                          ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(page: filters.page - 1);
+                          onRefresh();
+                        }
+                      : null,
+                  icon: const Icon(LucideIcons.chevronLeft, size: 20)),
               Text('Page ${filters.page}/${state.pagination!.totalPages}', style: mediumTextStyle(fontSize: 14)),
-              IconButton(onPressed: filters.page < state.pagination!.totalPages ? () { ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(page: filters.page + 1); onRefresh(); } : null, icon: const Icon(LucideIcons.chevronRight, size: 20)),
+              IconButton(
+                  onPressed: filters.page < state.pagination!.totalPages
+                      ? () {
+                          ref.read(payoutsFilterProvider.notifier).state = filters.copyWith(page: filters.page + 1);
+                          onRefresh();
+                        }
+                      : null,
+                  icon: const Icon(LucideIcons.chevronRight, size: 20)),
             ]),
           ),
         ],
-      ]),
+      ],
     );
   }
 
@@ -397,10 +452,16 @@ class _PayoutsTab extends ConsumerWidget {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const TitleText('Marquer comme payé', fontSize: 18),
-            content: TextField(controller: refCtrl, style: basicTextStyle(fontSize: 14), decoration: InputDecoration(labelText: 'Référence virement (optionnel)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+            content: TextField(
+                controller: refCtrl,
+                style: basicTextStyle(fontSize: 14),
+                decoration: InputDecoration(labelText: 'Référence virement (optionnel)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const MediumText('Annuler', fontSize: 14)),
-              ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)), onPressed: () => Navigator.pop(ctx, true), child: const MediumText('Confirmer', fontSize: 14, color: Colors.white)),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const MediumText('Confirmer', fontSize: 14, color: Colors.white)),
             ],
           ),
         );
@@ -477,11 +538,16 @@ class _PayoutRow extends StatelessWidget {
             width: 120,
             child: Row(children: [
               if (payout.status == 'pending' || payout.status == 'calculated')
-                Tooltip(message: 'Approuver', child: IconButton(onPressed: () => onAction('approve'), icon: Icon(LucideIcons.circleCheck, size: 18, color: const Color(0xFF10B981)))),
+                Tooltip(
+                    message: 'Approuver', child: IconButton(onPressed: () => onAction('approve'), icon: const Icon(LucideIcons.circleCheck, size: 18, color: Color(0xFF10B981)))),
               if (payout.status == 'approved')
-                Tooltip(message: 'Marquer payé', child: IconButton(onPressed: () => onAction('pay'), icon: Icon(LucideIcons.banknote, size: 18, color: AppColors.colorBluePrimary))),
+                Tooltip(
+                    message: 'Marquer payé',
+                    child: IconButton(onPressed: () => onAction('pay'), icon: const Icon(LucideIcons.banknote, size: 18, color: AppColors.colorBluePrimary))),
               if (payout.status != 'paid' && payout.status != 'disputed')
-                Tooltip(message: 'Contester', child: IconButton(onPressed: () => onAction('dispute'), icon: Icon(LucideIcons.triangleAlert, size: 18, color: AppColors.colorRedSecondary))),
+                Tooltip(
+                    message: 'Contester',
+                    child: IconButton(onPressed: () => onAction('dispute'), icon: const Icon(LucideIcons.triangleAlert, size: 18, color: AppColors.colorRedSecondary))),
             ]),
           ),
         ]),
@@ -491,11 +557,17 @@ class _PayoutRow extends StatelessWidget {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'paid': return const Color(0xFF10B981);
-      case 'approved': return AppColors.colorBluePrimary;
-      case 'pending': case 'calculated': return const Color(0xFFF59E0B);
-      case 'disputed': return AppColors.colorRedSecondary;
-      default: return AppColors.colorGrayDark;
+      case 'paid':
+        return const Color(0xFF10B981);
+      case 'approved':
+        return AppColors.colorBluePrimary;
+      case 'pending':
+      case 'calculated':
+        return const Color(0xFFF59E0B);
+      case 'disputed':
+        return AppColors.colorRedSecondary;
+      default:
+        return AppColors.colorGrayDark;
     }
   }
 }
@@ -506,6 +578,7 @@ class _PayoutRow extends StatelessWidget {
 
 class _PayoutDetailDialog extends ConsumerWidget {
   final String payoutId;
+
   const _PayoutDetailDialog({required this.payoutId});
 
   @override
@@ -521,12 +594,13 @@ class _PayoutDetailDialog extends ConsumerWidget {
         child: detailAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 40),
+            const Icon(LucideIcons.badgeAlert, color: AppColors.colorRedSecondary, size: 40),
             const SizedBox(height: 12),
             Text('Erreur: $e', style: basicTextStyle(color: AppColors.colorRedSecondary)),
             TextButton(onPressed: () => Navigator.pop(context), child: const MediumText('Fermer')),
           ]),
-          data: (payout) => SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          data: (payout) => SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(child: Text('Payout — ${payout.producerName}', style: boldTextStyle(fontSize: 20))),
               _StatusBadge(label: payout.statusLabel, color: payout.status == 'paid' ? const Color(0xFF10B981) : const Color(0xFFF59E0B)),
@@ -545,32 +619,31 @@ class _PayoutDetailDialog extends ConsumerWidget {
             if (payout.totalRentals > 0) _InfoRow('Locations', '${payout.totalRentals}'),
             if (payout.paymentRef != null) _InfoRow('Réf. virement', payout.paymentRef!),
             if (payout.paidAt != null) _InfoRow('Payé le', DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(DateTime.parse(payout.paidAt!))),
-
             if (payout.details != null && payout.details!.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text('Détails par contenu (${payout.details!.length})', style: boldTextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               ...payout.details!.map((d) => Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(10)),
-                child: Row(children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(d.contentTitle, style: mediumTextStyle(fontSize: 14)),
-                    Text(
-                      [
-                        if (d.watchMinutes > 0) '${currencyFormat.format(d.watchMinutes)} min',
-                        if (d.rentalCount > 0) '${d.rentalCount} locations',
-                        if (d.adImpressions > 0) '${d.adImpressions} pubs',
-                      ].join(' • '),
-                      style: basicTextStyle(fontSize: 12, color: AppColors.colorGrayDark),
-                    ),
-                  ])),
-                  Text('${currencyFormat.format(d.revenueShare)} ${payout.currency}', style: boldTextStyle(fontSize: 14)),
-                ]),
-              )),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(10)),
+                    child: Row(children: [
+                      Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(d.contentTitle, style: mediumTextStyle(fontSize: 14)),
+                        Text(
+                          [
+                            if (d.watchMinutes > 0) '${currencyFormat.format(d.watchMinutes)} min',
+                            if (d.rentalCount > 0) '${d.rentalCount} locations',
+                            if (d.adImpressions > 0) '${d.adImpressions} pubs',
+                          ].join(' • '),
+                          style: basicTextStyle(fontSize: 12, color: AppColors.colorGrayDark),
+                        ),
+                      ])),
+                      Text('${currencyFormat.format(d.revenueShare)} ${payout.currency}', style: boldTextStyle(fontSize: 14)),
+                    ]),
+                  )),
             ],
-
             const SizedBox(height: 16),
             Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.pop(context), child: const MediumText('Fermer', fontSize: 14))),
           ])),
@@ -587,7 +660,9 @@ class _PayoutDetailDialog extends ConsumerWidget {
 class _StatusBadge extends StatelessWidget {
   final String label;
   final Color color;
+
   const _StatusBadge({required this.label, required this.color});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -601,13 +676,17 @@ class _StatusBadge extends StatelessWidget {
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
+
   const _InfoRow(this.label, this.value);
+
   @override
   Widget build(BuildContext context) {
-    return Padding(padding: const EdgeInsets.only(bottom: 10), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 140, child: Text(label, style: basicTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
-      Expanded(child: Text(value, style: mediumTextStyle(fontSize: 13))),
-    ]));
+    return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(width: 140, child: Text(label, style: basicTextStyle(fontSize: 13, color: AppColors.colorGrayDark))),
+          Expanded(child: Text(value, style: mediumTextStyle(fontSize: 13))),
+        ]));
   }
 }
 
@@ -616,20 +695,27 @@ class _FilterChip extends StatelessWidget {
   final String? value;
   final Map<String, String> options;
   final Function(String?) onChanged;
+
   const _FilterChip({required this.label, required this.value, required this.options, required this.onChanged});
+
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String?>(
       onSelected: (val) => onChanged(val == value ? null : val),
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      itemBuilder: (ctx) => options.entries.map((e) => PopupMenuItem<String?>(value: e.key, child: Row(children: [
-        if (e.key == value) Icon(LucideIcons.check, size: 16, color: AppColors.colorBluePrimary) else const SizedBox(width: 16),
-        const SizedBox(width: 8),
-        Text(e.value, style: basicTextStyle(fontSize: 14)),
-      ]))).toList(),
+      itemBuilder: (ctx) => options.entries
+          .map((e) => PopupMenuItem<String?>(
+              value: e.key,
+              child: Row(children: [
+                if (e.key == value) const Icon(LucideIcons.check, size: 16, color: AppColors.colorBluePrimary) else const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(e.value, style: basicTextStyle(fontSize: 14)),
+              ])))
+          .toList(),
       child: Container(
-        height: 44, padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: value != null ? AppColors.colorBluePrimary.withOpacity(0.1) : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
