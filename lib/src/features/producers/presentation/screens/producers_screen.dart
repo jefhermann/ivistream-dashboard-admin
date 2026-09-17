@@ -709,6 +709,9 @@ class _ProducerDetailDialog extends ConsumerWidget {
 
   void _showAddMemberDialog(BuildContext context, WidgetRef ref, String producerId) {
     final userIdCtrl = TextEditingController();
+    final firstNameCtrl = TextEditingController();
+    final lastNameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
     String selectedRole = 'viewer';
 
     showDialog(
@@ -722,7 +725,11 @@ class _ProducerDetailDialog extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _DialogTextField(controller: userIdCtrl, label: 'ID utilisateur'),
+                _DialogTextField(controller: lastNameCtrl, label: 'Nom'),
+                const SizedBox(height: 12),
+                _DialogTextField(controller: firstNameCtrl, label: 'Prénoms'),
+                const SizedBox(height: 12),
+                _DialogTextField(controller: emailCtrl, label: 'Email'),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedRole,
@@ -749,7 +756,9 @@ class _ProducerDetailDialog extends ConsumerWidget {
                 if (userIdCtrl.text.trim().isEmpty) return;
                 Navigator.pop(ctx);
                 try {
-                  await ref.read(producersRepositoryProvider).addMember(producerId, userIdCtrl.text.trim(), selectedRole);
+                  await ref
+                      .read(producersRepositoryProvider)
+                      .addMember(producerId: producerId, email: emailCtrl.text, role: selectedRole, firstName: firstNameCtrl.text, lastName: lastNameCtrl.text);
                   ref.invalidate(producerDetailProvider(producerId));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

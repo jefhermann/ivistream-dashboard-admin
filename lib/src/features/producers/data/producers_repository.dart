@@ -22,9 +22,7 @@ class ProducersRepository {
     final response = await _dio.get('/admin/producers', queryParameters: queryParams);
     final data = response.data;
 
-    final producers = (data['items'] as List? ?? [])
-        .map((json) => AdminProducerModel.fromJson(json))
-        .toList();
+    final producers = (data['items'] as List? ?? []).map((json) => AdminProducerModel.fromJson(json)).toList();
 
     final pagination = PaginationModel.fromJson(data['pagination'] ?? {});
 
@@ -55,7 +53,8 @@ class ProducersRepository {
     return AdminProducerModel.fromJson(response.data['item']);
   }
 
-  Future<AdminProducerModel> updateProducer(String producerId, {
+  Future<AdminProducerModel> updateProducer(
+    String producerId, {
     String? name,
     String? description,
     String? countryCode,
@@ -77,9 +76,11 @@ class ProducersRepository {
     return AdminProducerModel.fromJson(response.data['item']);
   }
 
-  Future<void> addMember(String producerId, String userId, String role) async {
+  Future<void> addMember({required String producerId, required String email, required String role, String? firstName, String? lastName}) async {
     await _dio.post('/admin/producers/$producerId/members', data: {
-      'userId': userId,
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
       'role': role,
     });
   }
