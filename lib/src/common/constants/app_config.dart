@@ -13,6 +13,6 @@ class AppConfig {
       }
     }
     // Firebase Hosting ou autre → prod
-    return 'https://backend-production-bdeb4.up.railway.app/api';
+    return const String.fromEnvironment('API_URL', defaultValue: 'http://localhost:3000/api');
   }
 }
