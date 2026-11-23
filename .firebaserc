@@ -6,7 +6,7 @@
     "ivistream-dashboard-admin": {
       "hosting": {
         "admin": ["ivistream-dashboard-admin"],
-        "staging": ["staging-dashboard-admin"]
+        "staging": ["staging-ivistream-dashboard-admin"]
       }
     }
   }
