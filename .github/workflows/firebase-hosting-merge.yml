@@ -5,6 +5,13 @@ on:
     branches:
       - main
       - staging
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build_and_deploy:
@@ -19,6 +26,7 @@ jobs:
           channel: 'stable'
           flutter-version: '3.41.9'
           cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:'
 
       - name: Cache pub dependencies
         uses: actions/cache@v4
@@ -29,7 +37,7 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build web --release --pwa-strategy=none --wasm --dart-define=API_URL=${{ vars.API_URL }}
+      - run: flutter build web --release --pwa-strategy=none --dart-define=API_URL=${{ vars.API_URL }}
 
       - name: Check build output
         run: ls -la build/web/
