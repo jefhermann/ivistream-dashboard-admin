@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "ivistream-dashboard-admin"
+  },
+  "targets": {
+    "ivistream-dashboard-admin": {
+      "hosting": {
+        "admin": ["ivistream-dashboard-admin"],
+        "staging": ["staging-ivistream-dashboard-admin"]
+      }
+    }
   }
 }
